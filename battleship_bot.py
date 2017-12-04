@@ -19,8 +19,6 @@ import numpy as np   # Base N-dimensional array package
 #import pandas   # Data structures & analysis
 
 #Structs that contain info & heuristic values to choose next move.
-targetScore = namedtuple('targetScore','y x alignments impact')
-hitScore = namedtuple('hitScore','y x hitLength')
 
 #TODO enhance hits with impact on alignment
 #TODO get more info on different move options.
@@ -44,7 +42,7 @@ def calculateMove(gameState):
 #Find locations adjacent to possible hits and give preference to
 #long hit sequences.
 def possibleHits(oppBoard, oppShips):
-    targets = []
+    hits = []
     vertVisited = np.zeros(oppBoard.shape, dtype=bool)
     horiVisited = np.zeros(oppBoard.shape, dtype=bool)
     for (y,x) in np.ndenumerate(oppBoard):
@@ -65,7 +63,7 @@ def possibleHits(oppBoard, oppShips):
                         break
 
                 #Search below
-                for i in range(1,oppBoard.shape[0]-y-1):
+                for i in range(1,oppBoard.shape[0]-y):
                     if oppBoard[y+i,x] == 'H':
                         vertVisited[y+i,x] = True
                         vertLength += 1
@@ -74,9 +72,9 @@ def possibleHits(oppBoard, oppShips):
                         break
 
                 if top:
-                    targets.append(HitScore(top[0],top[1],vertLength))
+                    hits.append(makeHit(top[0],top[1],vertLength))
                 if bottom:
-                    targets.append(HitScore(bottom[0],bottom[1],vertLength))
+                    hits.append(makeHit(bottom[0],bottom[1],vertLength))
 
             #Search horizontally
             if not horzVisited[y,x]:
@@ -94,7 +92,7 @@ def possibleHits(oppBoard, oppShips):
                         break
 
                 #Search right
-                for i in range(1,oppBoard.shape[0]-y-1):
+                for i in range(1,oppBoard.shape[0]-y):
                     if oppBoard[y,x+j] == 'H':
                         horzVisited[y,x+j] = True
                         horzLength += 1
@@ -103,35 +101,36 @@ def possibleHits(oppBoard, oppShips):
                         break
 
                 if left:
-                    targets.append(HitScore(left[0],left[1],horzLength))
+                    hits.append(makeHit(left[0],left[1],horzLength))
                 if right:
-                    targets.append(HitScore(right[0],right[1],horzLength))
+                    hits.append(makeHit(right[0],right[1],horzLength))
 
-    return targets
+    return hits
 
 #Go through each valid tile and attempt a shot. Observe how much this reduces possible
 #alignments and return each move.
 def possibleTargets(oppBoard, oppShips):
-    defAlignment, totalAlignments = posssibleAlignments(oppBoard, oppShips)
+    defAlignment, totalAlignments = possibleAlignments(oppBoard, oppShips)
 
     #Get all non-zero possible alignements and their indices.
-    targets = [targetScore(y,x,val,0) for y,row in enumerate(defAlignment) for x,val  in enumerate(row) if val > 0]
+    targets = [makeTarget(y,x,val,0) for y,row in enumerate(defAlignment) for x,val  in enumerate(row) if val > 0]
 
     #Try shooting at a coordinate to see how much it reduces the total alignments.
     for target in targets:
-        oppBoard[target.y,target.x] = 'T'
-        target.impact = defAlignment - posssibleAlignments(oppBoard, oppShips)[1]
-        oppBoard[target.y, target.x] = ''
+        oppBoard[target['y']][target['x']] = 'T'
+        target['impact'] = totalAlignments - possibleAlignments(oppBoard, oppShips)[1]
+        oppBoard[target['y']][target['x']] = ''
 
     return targets
 
 #For each cell, calculate the number of possible alignments and return the results + possibilities.
-def posssibleAlignments(oppBoard, oppShips):
-    alignments = np.zeros(np.shape, dtype=int)
+def possibleAlignments(oppBoard, oppShips):
+    alignments = np.zeros((len(oppBoard),len(oppBoard[0])), dtype=int)
     #y is the row, x is the column
-    for (y,x) in np.ndenumerate(alignments):
-        if oppBoard[y,x] == '':
-            alignments[y,x] = alignmentsIn(y,x, oppBoard, oppShips)
+    for y in range(0,len(oppBoard)):
+        for x in range(0,len(oppBoard[0])):
+            if oppBoard[y][x] == '':
+                alignments[y,x] = alignmentsIn(y,x, oppBoard, oppShips)
 
     return (alignments, np.sum(alignments))
 
@@ -139,12 +138,12 @@ def posssibleAlignments(oppBoard, oppShips):
 def alignmentsIn(y,x, oppBoard, oppShips):
     validAlignments = 0
     for shipLength in oppShips:
-        for i in range(0,shipLength-1):
+        for i in range(0,shipLength):
             #Vertical alignment attempts
-            if canDeploy(y-i,x, shipLength, "V"):
+            if y-i >= 0 and canDeploy(y-i,x, oppBoard, shipLength, "V"):
                 validAlignments +=1
             #Horizontal alignment attempts
-            if canDeploy(y,x-i,shipLength,"H"):
+            if x-i >= 0 and canDeploy(y,x-i, oppBoard, shipLength,"H"):
                 validAlignments += 1
 
     return validAlignments
@@ -165,7 +164,12 @@ def canDeploy(i,j,board, length, orientation):
                 return False  # Ship not deployed
     return True  # Ship fits
 
+#Helper methods to put variables into a dictionary.
+def makeTarget(y,x,alignment,impact):
+    return {'y':y,'x':x,'alignment':alignment,'impact':impact}
 
+def makeHit(y,x,seqLength):
+    return {'y':y,'x':x,'seqLength':seqLength}
 
 # =============================================================================
 # The code below shows a selection of helper functions designed to make the
