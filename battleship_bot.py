@@ -9,6 +9,7 @@ botName='Nbot'
 
 from random import randint, choice
 from collections import namedtuple
+
 import json
 
 # These are the only additional libraries available to you. Uncomment them
@@ -17,47 +18,43 @@ import json
 import numpy as np   # Base N-dimensional array package
 #import pandas   # Data structures & analysis
 
+#Structs that contain info & heuristic values to choose next move.
 targetScore = namedtuple('targetScore','y x alignments impact')
 hitScore = namedtuple('hitScore','y x hitLength')
 
-
-# =============================================================================
-# This calculateMove() function is where you need to write your code. When it
-# is first loaded, it will play a complete game for you using the Helper
-# functions that are defined below. The Helper functions give great example
-# code that shows you how to manipulate the data you receive and the move
-# that you have to return.
-#
-
+#TODO enhance hits with impact on alignment
+#TODO get more info on different move options.
 def calculateMove(gameState):
     oppShips = shipsStillAfloat(gameState)
     oppBoard = np.array(gameState['OppBoard'])
     #If there are hits, try nearby targets.
-    #TODO check if this works.
-    #TODO enhance hits with impact on alignment
     if 'H' in oppBoard:
         moves = possibleHits(oppBoard,oppShips)
-        #TODO Sort by length and choose most promising.
+        sorted_moves = sorted(moves, key=lambda x:x.hitLength)
+        choice = sorted_moves[0]
     #If not, find possible targets from the grid.
     else:
         moves = possibleTargets(oppBoard, oppShips)
-        #TODO Sort by alignment or impact and choose most promising
-
+        sorted_align = sorted(moves, key=lambda x:x.alignments)
+        sorted_impact = sorted(moves, key=lambda x:x.impact)
+        choice = sorted_impact[0]
 
     return translateMove(y,x)
 
+#Find locations adjacent to possible hits and give preference to
+#long hit sequences.
 def possibleHits(oppBoard, oppShips):
     targets = []
     vertVisited = np.zeros(oppBoard.shape, dtype=bool)
     horiVisited = np.zeros(oppBoard.shape, dtype=bool)
     for (y,x) in np.ndenumerate(oppBoard):
-        if oppBoard[y,x] = 'H':
+        if oppBoard[y,x] == 'H':
             #Search vertically
             if not vertVisited[y,x]:
                 vertVisited[y,x] = True
                 vertLength = 1
                 top = bottom = None
-                
+
                 #Search above
                 for i in range(1,y):
                     if oppBoard[y-i,x] == 'H':
@@ -81,13 +78,13 @@ def possibleHits(oppBoard, oppShips):
                 if bottom:
                     targets.append(HitScore(bottom[0],bottom[1],vertLength))
 
-
+            #Search horizontally
             if not horzVisited[y,x]:
                 horzVisited[y,x] = True
                 horzLength = 1
                 left = right = None
-                
-                #Search above
+
+                #Search left
                 for j in range(1,x):
                     if oppBoard[y,x-j] == 'H':
                         horzLength[y,x-j] = True
@@ -96,7 +93,7 @@ def possibleHits(oppBoard, oppShips):
                         left = (y,x-j)
                         break
 
-                #Search below
+                #Search right
                 for i in range(1,oppBoard.shape[0]-y-1):
                     if oppBoard[y,x+j] == 'H':
                         horzVisited[y,x+j] = True
@@ -108,7 +105,7 @@ def possibleHits(oppBoard, oppShips):
                 if left:
                     targets.append(HitScore(left[0],left[1],horzLength))
                 if right:
-                    targets.append(HitScore(right[0],right[1],horzLength))            
+                    targets.append(HitScore(right[0],right[1],horzLength))
 
     return targets
 
@@ -116,9 +113,9 @@ def possibleHits(oppBoard, oppShips):
 #alignments and return each move.
 def possibleTargets(oppBoard, oppShips):
     defAlignment, totalAlignments = posssibleAlignments(oppBoard, oppShips)
+
     #Get all non-zero possible alignements and their indices.
-    #TODO
-    targets = [targetScore(y,x,val,0) for y in defAlignment for x in defAlignment[y] if ]
+    targets = [targetScore(y,x,val,0) for y,row in enumerate(defAlignment) for x,val  in enumerate(row) if val > 0]
 
     #Try shooting at a coordinate to see how much it reduces the total alignments.
     for target in targets:
@@ -136,7 +133,7 @@ def posssibleAlignments(oppBoard, oppShips):
         if oppBoard[y,x] == '':
             alignments[y,x] = alignmentsIn(y,x, oppBoard, oppShips)
 
-    return (alignments, np.sum(alignments)
+    return (alignments, np.sum(alignments))
 
 #Gets number of valid alignments for a position
 def alignmentsIn(y,x, oppBoard, oppShips):
