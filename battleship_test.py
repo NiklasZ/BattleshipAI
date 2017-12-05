@@ -1,5 +1,5 @@
 import unittest
-import battleship_bot as bs
+import ai.battleship_ai as bs
 import numpy as np
 
 class TestDeployment(unittest.TestCase):

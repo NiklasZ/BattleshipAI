@@ -13,7 +13,6 @@ from collections import namedtuple
 import json
 
 import numpy as np   # Base N-dimensional array package
-#import pandas   # Data structures & analysis
 
 #Structs that contain info & heuristic values to choose next move.
 

@@ -2,10 +2,10 @@ import time
 import requests
 import locale
 from tkinter import Tk, Label, Button, Text, W, E, Entry, Frame, Listbox, Checkbutton, Message, BooleanVar, messagebox
-import battleship_bot
+import ai.battleship_ai
 import platform
 import threading
-import battleships_visuals
+import ui.battleships_visuals
 import atexit
 import argparse
 
@@ -140,8 +140,8 @@ class BattleshipsDemoClient(Frame):
         self.gameTitleLabel = Label(self.middleFrameRight, text="Game Title")
         self.gameTitleText = Text(self.middleFrameRight, height=3, background='white', spacing1=3, pady=0)
 
-        self.player = battleships_visuals.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
-        self.opponent = battleships_visuals.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
+        self.player = ui.battleships_visuals.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
+        self.opponent = ui.battleships_visuals.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
         self.gameActionLabel = Label(self.middleFrameRight, text="")
 
         # ===================================
@@ -504,7 +504,7 @@ class BattleshipsDemoClient(Frame):
 
             if game_state['IsMover']:
                 self.resultText.config(text='Playing Game - Your Turn')
-                move = battleship_bot.calculateMove(game_state)
+                move = ai.battleship_ai.calculateMove(game_state)
                 move_results = self.make_move(move)
 
                 if move_results['Result'] == 'INVALID_MOVE':

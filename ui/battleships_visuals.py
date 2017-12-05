@@ -3,7 +3,7 @@ import tkinter
 import copy
 from PIL import Image, ImageTk
 
-ASSETS_PATH = '200x200'
+ASSETS_PATH = 'ui/200x200'
 
 TABLE_WIDTH = 360
 TABLE_HEIGHT = 360
