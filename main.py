@@ -500,7 +500,8 @@ class BattleshipsDemoClient(Frame):
 
         self.middleFrame.update()
 
-        recorder = record.Recorder(game_state)
+        #TODO change bot name to a variable
+        recorder = record.GameRecorder(game_state, 'NbotI')
 
         while True:
             if self.game_cancelled:
@@ -530,12 +531,10 @@ class BattleshipsDemoClient(Frame):
 
                 if poll_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + poll_results['Result'])
-                    recorder.record_end(poll_results['Result'])
                     break
                 game_state = poll_results['GameState']
 
             if game_state['GameStatus'] != 'RUNNING':
-                recorder.record_end(game_state['GameStatus'])
                 break
 
             self.middleFrameRight.update()
@@ -550,6 +549,7 @@ class BattleshipsDemoClient(Frame):
                 time.sleep(0.1)
 
         self.set_in_game(False)
+        recorder.record_end()
 
     def make_move(self, move):
         """Make a move."""

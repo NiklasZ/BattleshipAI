@@ -1,4 +1,4 @@
-botName='NbotI'
+bot_name ='NbotI'
 
 from random import randint, choice
 from collections import namedtuple
