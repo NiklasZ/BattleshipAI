@@ -1,17 +1,8 @@
-#   ____        _   _   _           _     _
-#  | __ )  __ _| |_| |_| | ___  ___| |__ (_)_ __  ___
-#  |  _ \ / _` | __| __| |/ _ \/ __| '_ \| | '_ \/ __|
-#  | |_) | (_| | |_| |_| |  __/\__ \ | | | | |_) \__ \
-#  |____/ \__,_|\__|\__|_|\___||___/_| |_|_| .__/|___/
-#                                          |_|
-#
 botName='NbotI'
 
 from random import randint, choice
 from collections import namedtuple
-
 import json
-
 import numpy as np   # Base N-dimensional array package
 
 #Structs that contain info & heuristic values to choose next move.
@@ -55,8 +46,7 @@ def calculateMove(gameState):
         y = coord['y']
         x = coord['x']
 
-    print("Firing at:",(y,x))
-    print("Position on board:",translateMove(y,x))
+    print("Firing at:",translateMove(y,x))
     return translateMove(y,x)
 
 #Find locations adjacent to possible hits and give preference to

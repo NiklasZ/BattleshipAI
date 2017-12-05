@@ -8,6 +8,7 @@ import threading
 import ui.battleships_visuals
 import atexit
 import argparse
+import utils.game_recorder as record
 
 # Platforms
 WINDOWS = (platform.system() == "Windows")
@@ -482,6 +483,7 @@ class BattleshipsDemoClient(Frame):
             return
 
         game_state = poll_results['GameState']
+        print(poll_results)
 
         title = format('Game ID: ' + str(game_state['GameId']))
         game_style_details = self.game_styles_listbox.get('active').split(" | ")
@@ -497,6 +499,8 @@ class BattleshipsDemoClient(Frame):
         self.set_game_title_text(versus, "bold")
 
         self.middleFrame.update()
+
+        recorder = record.Recorder(game_state)
 
         while True:
             if self.game_cancelled:
@@ -526,13 +530,16 @@ class BattleshipsDemoClient(Frame):
 
                 if poll_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + poll_results['Result'])
+                    recorder.record_end(poll_results['Result'])
                     break
                 game_state = poll_results['GameState']
 
             if game_state['GameStatus'] != 'RUNNING':
+                recorder.record_end(game_state['GameStatus'])
                 break
 
             self.middleFrameRight.update()
+            recorder.record_turn(game_state)
 
             try:
                 if int(self.thinking_time_entry.get()) > 0:
@@ -556,7 +563,6 @@ class BattleshipsDemoClient(Frame):
         result = BattleshipsDemoClient.make_api_call(url, req)
 
         if result['Result'] == 'SUCCESS' or "GAME_HAS_ENDED" in result['Result']:
-            print(result)
             try:
                 self.player.draw_game_state(result['GameState'], True)
                 self.opponent.draw_game_state(result['GameState'], False)
