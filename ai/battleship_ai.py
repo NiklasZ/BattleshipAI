@@ -1,15 +1,14 @@
 bot_name ='NbotI'
 
 from random import randint, choice
-from collections import namedtuple
 import json
 import numpy as np   # Base N-dimensional array package
 
 #Structs that contain info & heuristic values to choose next move.
 
-#TODO remove impact (has no effect)
 #TODO adjust hitting to only bother with directions that make sense (e.g don't fire at positions where the ship cannot exist).
-#TODO perform subset checks on alignments to remove irrelevant choices entirely (useful when going probabilistic)-
+#TODO perform subset checks on alignments to remove irrelevant choices entirely (useful when going probabilistic).
+#TODO rearrange so as to fit any number of bots.
 def calculateMove(gameState):
 
     gameState['opp_board'] = gameState['OppBoard']
@@ -32,17 +31,11 @@ def calculateMove(gameState):
     #If not, find possible targets from the grid.
     else:
         moves = possible_targets(opp_board, opp_ships)
-        align_highest = max(moves, key=lambda x:x['alignment'])['alignment']
-        impact_highest = max(moves, key=lambda x:x['impact'])['impact']
-
-        align_choices = [move for move in moves if move['alignment'] == align_highest]
-        impact_choices = [move for move in moves if move['impact'] == impact_highest]
-
+        highest = max(moves, key=lambda x:x['alignment'])['alignment']
+        choices = [move for move in moves if move['alignment'] == highest]
         print('Targeting...')
-        print('choices:',impact_choices)
-        if(impact_choices != impact_choices):
-            print('align recommends different choice:',align_choices)
-        coord = choice(impact_choices)
+        print('choices:',choices)
+        coord = choice(choices)
         y = coord['y']
         x = coord['x']
 
@@ -141,17 +134,9 @@ def add_to_hits(hits,coord,seqLength):
 #Go through each valid tile and attempt a shot. Observe how much this reduces possible
 #alignments and return each move.
 def possible_targets(opp_board, opp_ships):
-    def_alignment, total_alignments = possible_alignments(opp_board, opp_ships)
-
+    alignments = possible_alignments(opp_board, opp_ships)
     #Get all non-zero possible alignements and their indices.
-    targets = [make_target(y,x,val,0) for y,row in enumerate(def_alignment) for x,val  in enumerate(row) if val > 0]
-
-    #Try shooting at a coordinate to see how much it reduces the total alignments.
-    for target in targets:
-        opp_board[target['y']][target['x']] = 'T'
-        target['impact'] = total_alignments - possible_alignments(opp_board, opp_ships)[1]
-        opp_board[target['y']][target['x']] = ''
-
+    targets = [make_target(y,x,val) for y,row in enumerate(alignments) for x,val  in enumerate(row) if val > 0]
     return targets
 
 #For each cell, calculate the number of possible alignments and return the results + possibilities.
@@ -163,7 +148,7 @@ def possible_alignments(opp_board, opp_ships):
             if opp_board[y][x] == '':
                 alignments[y,x] = alignments_in(y,x, opp_board, opp_ships)
 
-    return (alignments, np.sum(alignments))
+    return alignments
 
 #Gets number of valid alignments for a position
 def alignments_in(y,x, opp_board, opp_ships):
@@ -196,8 +181,8 @@ def can_deploy(i,j,board, length, orientation):
     return True  # Ship fits
 
 #Helper methods to put variables into a dictionary.
-def make_target(y,x,alignment,impact):
-    return {'y':y,'x':x,'alignment':alignment,'impact':impact}
+def make_target(y,x,alignment):
+    return {'y':y,'x':x,'alignment':alignment}
 
 # =============================================================================
 # The code below shows a selection of helper functions designed to make the

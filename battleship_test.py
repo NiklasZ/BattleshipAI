@@ -60,52 +60,6 @@ class TestAlignments(unittest.TestCase):
 				self.assertEqual(a, a_t)
 		self.assertEqual(alignment_sum, alignment_test_sum)
 
-class TestTargeting(unittest.TestCase):
-
-	def test_impact_targets(self):
-		ships = [2,3]
-		board = [['','',''],
-		['','',''],
-		['','','M']]
-		alignments_test = [[4,5,3],
-		[5,6,3],
-		[3,3,0]]
-		alignment_test_sum = 32
-
-		#Test alignments again
-		alignments, alignment_sum  = bs.possible_alignments(board,ships)
-		for row, row_t in zip(alignments, alignments_test):
-			for a, a_t in zip(row,row_t):
-				self.assertEqual(a, a_t)
-		self.assertEqual(alignment_sum, alignment_test_sum)
-
-		#Test some impact values
-		impact_0_0 = bs.make_target(0,0,4,10) #If we shoot at (0,0)
-		impact_0_1 = bs.make_target(0,1,5,12) #If we shoot at (0,1)
-		impact_1_1 = bs.make_target(1,1,6,14) #If we shoot at (1,1)
-
-		targets = bs.possible_targets(board, ships)
-
-		flag_0_0 = False
-		flag_0_1 = False
-		flag_1_1 = False
-
-
-
-
-
-		for target in targets:
-			if impact_0_0 == target:
-				flag_0_0 = True
-			if impact_0_1 == target:
-				flag_0_1 = True
-			if impact_1_1 == target:
-				flag_1_1 = True
-
-		self.assertTrue(flag_0_0)
-		self.assertTrue(flag_0_1)
-		self.assertTrue(flag_1_1)
-
 class TestHitSelection(unittest.TestCase):
 
 	#Check whether it returns adjacent coordinates for single hits.
