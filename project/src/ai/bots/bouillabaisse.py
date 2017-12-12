@@ -7,7 +7,7 @@ import src.ai.ai_helpers as ai_help
 # TODO adjust hitting to only bother with directions that make sense (e.g don't fire at positions where the ship cannot exist).
 # TODO perform subset checks on alignments to remove irrelevant choices entirely (useful when going probabilistic).
 # TODO rearrange so as to fit any number of bots.
-class Bouillabaisse:
+class Bot:
 
     def __init__(self):
         self.bot_name = 'NbotI'
