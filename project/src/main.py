@@ -9,7 +9,7 @@ import atexit
 import argparse
 
 # Project imports
-import src.ai as ai
+import src.ai.ai as ai
 import src.ui.battleships_visuals as ui
 import src.utils.game_recorder as record
 
@@ -144,8 +144,8 @@ class BattleshipsDemoClient(Frame):
         self.gameTitleLabel = Label(self.middleFrameRight, text="Game Title")
         self.gameTitleText = Text(self.middleFrameRight, height=3, background='white', spacing1=3, pady=0)
 
-        self.player = ui.battleships_visuals.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
-        self.opponent = ui.battleships_visuals.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
+        self.player = ui.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
+        self.opponent = ui.BattleshipsVisuals(self.middleFrameRight)  # Game Display Table
         self.gameActionLabel = Label(self.middleFrameRight, text="")
 
         # ===================================
@@ -503,16 +503,17 @@ class BattleshipsDemoClient(Frame):
 
         self.middleFrame.update()
 
-        #TODO change bot name to a variable
-        recorder = record.GameRecorder(game_state, 'NbotI')
-
+        #Create bot and game recording
+        recorder = record.GameRecorder(game_state, self.bot_id)
+        bot = ai.AI()
+        bot.load_bot(self.bot_id)
         while True:
             if self.game_cancelled:
                 break
 
             if game_state['IsMover']:
                 self.resultText.config(text='Playing Game - Your Turn')
-                move = ai.calculateMove(game_state)
+                move = bot.make_decision(game_state)
                 move_results = self.make_move(move)
 
                 if move_results['Result'] == 'INVALID_MOVE':
