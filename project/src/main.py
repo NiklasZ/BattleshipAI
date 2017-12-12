@@ -1,14 +1,17 @@
+#External imports
 import time
 import requests
 import locale
 from tkinter import Tk, Label, Button, Text, W, E, Entry, Frame, Listbox, Checkbutton, Message, BooleanVar, messagebox
-import ai.ai
 import platform
 import threading
-import ui.battleships_visuals
 import atexit
 import argparse
-import utils.game_recorder as record
+
+# Project imports
+import src.ai as ai
+import src.ui.battleships_visuals as ui
+import src.utils.game_recorder as record
 
 # Platforms
 WINDOWS = (platform.system() == "Windows")
@@ -509,7 +512,7 @@ class BattleshipsDemoClient(Frame):
 
             if game_state['IsMover']:
                 self.resultText.config(text='Playing Game - Your Turn')
-                move = ai.ai.calculateMove(game_state)
+                move = ai.calculateMove(game_state)
                 move_results = self.make_move(move)
 
                 if move_results['Result'] == 'INVALID_MOVE':
