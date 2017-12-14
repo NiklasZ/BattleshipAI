@@ -7,40 +7,6 @@ import numpy as np
 # possible. The code also serves as an example of how to manipulate the myBoard
 # and opp_board dictionaries that are in gameState.
 
-# For a hit option, calculate the number of possible alignments and return the results + possibilities.
-def possible_hit_ships(opp_board, opp_ships, hit_option):
-    # Remove ships that are too short to be possible.
-    possible_ships = opp_ships - hit_option['seqLength']
-    possible_ships[possible_ships > 0]
-    ship_fits = 0
-
-    # Based on the sequence's position, ascertain if there is enough room.
-    # This works by trying to deploy a ship such that it ls positioned where the
-    # known sequence is.
-    for ship_length in possible_ships:
-        if hit_option['direction'] == 'top':
-            start_idx = hit_option[0] - ship_length
-            if start_idx >= 0 and can_deploy(start_idx, hit_option[1], opp_board, ship_length, 'V'):
-                ship_fits += 1
-
-        if hit_option['direction'] == 'bottom':
-            start_idx = hit_option[0] + ship_length
-            if start_idx < len(opp_board) and can_deploy(start_idx, hit_option[1], opp_board, ship_length, 'V'):
-                ship_fits += 1
-
-        if hit_option['direction'] == 'left':
-            start_idx = hit_option[1] - ship_length
-            if start_idx >= 0 and can_deploy(hit_option[0], start_idx, opp_board, ship_length, 'H'):
-                ship_fits += 1
-
-        if hit_option['direction'] == 'top':
-            start_idx = hit_option[1] + ship_length
-            if start_idx < len(opp_board[0]) and can_deploy(hit_option[0], start_idx, opp_board, ship_length, 'H'):
-                ship_fits += 1
-
-    return ship_fits
-
-
 def possible_alignments(opp_board, opp_ships):
     alignments = np.zeros((len(opp_board), len(opp_board[0])), dtype=int)
     # y is the row, x is the column
@@ -68,19 +34,19 @@ def alignments_in(y, x, opp_board, opp_ships):
 
 
 # Deploys all the ships randomly on a blank board
-def deploy_randomly(gamestate):
+def deploy_randomly(game_state):
     move = []  # Initialise move as an emtpy list
     orientation = None
     row = None
     column = None
-    for i in range(len(gamestate["Ships"])):  # For every ship that needs to be deployed
+    for i in range(len(game_state["Ships"])):  # For every ship that needs to be deployed
         deployed = False
         while not deployed:  # Keep randomly choosing locations until a valid one is chosen
-            row = np.random.randint(0, len(gamestate["MyBoard"]) - 1)  # Randomly pick a row
-            column = np.random.randint(0, len(gamestate["MyBoard"][0]) - 1)  # Randomly pick a column
+            row = np.random.randint(0, len(game_state["MyBoard"]) - 1)  # Randomly pick a row
+            column = np.random.randint(0, len(game_state["MyBoard"][0]) - 1)  # Randomly pick a column
             orientation = np.random.choice(["H", "V"])  # Randomly pick an orientation
-            if deployShip(row, column, gamestate["MyBoard"], gamestate["Ships"][i], orientation,
-                          i):  # If ship can be successfully deployed to that location...
+            if deploy_ship(row, column, game_state["MyBoard"], game_state["Ships"][i], orientation,
+                           i):  # If ship can be successfully deployed to that location...
                 deployed = True  # ...then the ship has been deployed
         move.append({"Row": chr(row + 65), "Column": (column + 1),
                      "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
@@ -88,7 +54,7 @@ def deploy_randomly(gamestate):
 
 
 # Returns whether given location can fit given ship onto given board and, if it can, updates the given board with that ships position
-def deployShip(i, j, board, length, orientation, ship_num):
+def deploy_ship(i, j, board, length, orientation, ship_num):
     if orientation == "V":  # If we are trying to place ship vertically
         if i + length - 1 >= len(board):  # If ship doesn't fit within board boundaries
             return False  # Ship not deployed
@@ -109,18 +75,18 @@ def deployShip(i, j, board, length, orientation, ship_num):
 
 
 # Returns a list of the lengths of your opponent's ships that haven't been sunk
-def shipsStillAfloat(gamestate):
+def ships_still_afloat(game_state):
     afloat = []
     ships_removed = []
-    for k in range(len(gamestate["Ships"])):  # For every ship
-        afloat.append(gamestate["Ships"][k])  # Add it to the list of afloat ships
+    for k in range(len(game_state["Ships"])):  # For every ship
+        afloat.append(game_state["Ships"][k])  # Add it to the list of afloat ships
         ships_removed.append(False)  # Set its removed from afloat list to false
-    for i in range(len(gamestate["opp_board"])):
-        for j in range(len(gamestate["opp_board"][0])):  # For every grid on the board
-            for k in range(len(gamestate["Ships"])):  # For every ship
-                if str(k) in gamestate["opp_board"][i][j] and not ships_removed[
+    for i in range(len(game_state["opp_board"])):
+        for j in range(len(game_state["opp_board"][0])):  # For every grid on the board
+            for k in range(len(game_state["Ships"])):  # For every ship
+                if str(k) in game_state["opp_board"][i][j] and not ships_removed[
                     k]:  # If we can see the ship number on our opponent's board and we haven't already removed it from the afloat list
-                    afloat.remove(gamestate["Ships"][
+                    afloat.remove(game_state["Ships"][
                                       k])  # Remove that ship from the afloat list (we can only see an opponent's ship number when the ship has been sunk)
                     ships_removed[
                         k] = True  # Record that we have now removed this ship so we know not to try and remove it again
@@ -145,5 +111,130 @@ def can_deploy(i, j, board, length, orientation):
 
 
 # Given a valid coordinate on the board returns it as a correctly formatted move
-def translateMove(row, column):
+def translate_move(row, column):
     return {"Row": chr(row + 65), "Column": (column + 1)}
+
+
+# For a hit option, calculate the number of possible alignments and return the results + possibilities.
+def possible_hit_ships(opp_board, opp_ships, position, hit_option):
+    # Remove ships that are too short to be possible.
+    possible_ships = np.array(opp_ships) - hit_option['seq_length']
+    possible_ships = possible_ships[possible_ships > 0]
+    ship_fits = 0
+
+    # Based on the sequence's position, ascertain if there is enough room.
+    # This works by trying to deploy a ship such that it ls positioned where the
+    # known sequence is.
+    for ship_length in possible_ships:
+        if hit_option['direction'] == 'top':
+            start_idx = position[0] - ship_length + 1  # needs to be inclusive of empty position.
+            if start_idx >= 0 and can_deploy(start_idx, position[1], opp_board, ship_length, 'V'):
+                ship_fits += 1
+
+        if hit_option['direction'] == 'bottom':
+            start_idx = position[0]
+            if start_idx < len(opp_board) and can_deploy(start_idx, position[1], opp_board, ship_length, 'V'):
+                ship_fits += 1
+
+        if hit_option['direction'] == 'left':
+            start_idx = position[1] - ship_length + 1
+            if start_idx >= 0 and can_deploy(position[0], start_idx, opp_board, ship_length, 'H'):
+                ship_fits += 1
+
+        if hit_option['direction'] == 'right':
+            start_idx = position[1]
+            if start_idx < len(opp_board[0]) and can_deploy(position[0], start_idx, opp_board, ship_length, 'H'):
+                ship_fits += 1
+
+    return ship_fits
+
+
+# Find locations adjacent to possible hits and records their lengths.
+def adjacent_to_hits(opp_board):
+    hits = {}
+    vert_visited = np.zeros((len(opp_board), len(opp_board[0])), dtype=bool)
+    horz_visited = np.zeros((len(opp_board), len(opp_board[0])), dtype=bool)
+    for (y, x), val in np.ndenumerate(opp_board):
+        if opp_board[y][x] == 'H':
+            # Search vertically
+            if not vert_visited[y, x]:
+                vert_visited[y, x] = True
+                vert_length = 1
+                top = bottom = None
+
+                # Search above
+                i = 1
+                while y - i >= 0:
+                    if opp_board[y - i][x] == 'H':
+                        vert_visited[y - i, x] = True
+                        vert_length += 1
+                    else:
+                        if opp_board[y - i][x] == '':
+                            top = (y - i, x)
+                        break
+                    i += 1
+
+                # Search below
+                i = 1
+                while y + i < len(opp_board):
+                    if opp_board[y + i][x] == 'H':
+                        vert_visited[y + i, x] = True
+                        vert_length += 1
+                    else:
+                        if opp_board[y + i][x] == '':
+                            bottom = (y + i, x)
+                        break
+                    i += 1
+
+                if top:
+                    add_to_hits(hits, top, vert_length, 'top')
+                if bottom:
+                    add_to_hits(hits, bottom, vert_length, 'bottom')
+
+            # Search horizontally
+            if not horz_visited[y, x]:
+                horz_visited[y, x] = True
+                horz_length = 1
+                left = right = None
+
+                # Search left
+                j = 1
+                while x - j >= 0:
+                    if opp_board[y][x - j] == 'H':
+                        horz_length[y, x - j] = True
+                        horz_length += 1
+                    else:
+                        if opp_board[y][x - j] == '':
+                            left = (y, x - j)
+                        break
+                    j += 1
+
+                # Search right
+                j = 1
+                while x + j < len(opp_board[0]):
+                    if opp_board[y][x + j] == 'H':
+                        horz_visited[y, x + j] = True
+                        horz_length += 1
+                    else:
+                        if opp_board[y][x + j] == '':
+                            right = (y, x + j)
+                        break
+                    j += 1
+
+                if left:
+                    add_to_hits(hits, left, horz_length, 'left')
+                if right:
+                    add_to_hits(hits, right, horz_length, 'right')
+
+    return hits
+
+
+# Helper method for adding hits. If multiple ship lengths intersect, it will
+# prioritise the larger one. Normally this should never happen if the AI greedily
+# hunts down the longest found ship before bothering with another one.
+def add_to_hits(hits, coord, seq_length, direction):
+    if coord not in hits:
+        hits[coord] = {'seq_length': seq_length, 'direction': direction}
+    elif seq_length > hits[coord]['seq_length']:
+        print("Why is this executing?!")
+        hits[coord] = {'seq_length': seq_length, 'direction': direction}

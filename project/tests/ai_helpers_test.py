@@ -1,6 +1,7 @@
 import unittest
-import src.ai.ai_helpers as ai_help
 import numpy as np
+
+import src.ai.ai_helpers as ai_help
 
 
 class TestDeployment(unittest.TestCase):
@@ -56,11 +57,11 @@ class TestAlignments(unittest.TestCase):
                            [0, 0, 1, 4]]
         alignment_test_sum = 40
 
-        alignments, alignment_sum = ai_help.possible_alignments(board, ships)
+        alignments = ai_help.possible_alignments(board, ships)
         for row, row_t in zip(alignments, alignments_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)
-        self.assertEqual(alignment_sum, alignment_test_sum)
+        self.assertEqual(np.sum(alignments), alignment_test_sum)
 
 
 class TestHitSelection(unittest.TestCase):
@@ -72,20 +73,18 @@ class TestHitSelection(unittest.TestCase):
                  ['L', '', 'M', '', ''],
                  ['', 'M', '', '', ''],
                  ['', 'M', '', 'H', '']]
-        ships = [2, 3]
         test_positions = [(0, 1), (1, 0), (1, 2), (2, 1), (3, 3), (4, 2), (4, 4)]
 
-        hit_positions = ai_help.possible_hits(board, ships)
+        hit_positions = ai_help.adjacent_to_hits(board)
         for tp in test_positions:
             found = False
-            for hit_pos in hit_positions.keys():
-                if tp[0] == hit_pos[0] and tp[1] == hit_pos[1]:
-                    found = True
-
+            if tp in hit_positions:
+                found = True
             # Checks that all the required finds are there.
             self.assertTrue(found)
-            # Checks that there are no extra finds.
-            self.assertEqual(len(hit_positions), len(test_positions))
+
+        # Checks that there are no extra finds.
+        self.assertEqual(len(hit_positions), len(test_positions))
 
     # Check whether it returns adjacent coordinates for longer hits and
     # segments on the same column/row.
@@ -95,36 +94,115 @@ class TestHitSelection(unittest.TestCase):
                  ['L', '', 'M', '', ''],
                  ['H', 'M', 'H', 'H', 'H'],
                  ['', 'M', '', 'H', '']]
-        ships = [2, 3]
         test_positions = [(0, 0), (0, 2), (1, 0), (1, 2), (2, 1), (2, 3), (2, 4), (4, 0), (4, 2), (4, 4)]
-        hit_positions = ai_help.possible_hits(board, ships)
+        hit_positions = ai_help.adjacent_to_hits(board)
 
         for tp in test_positions:
             found = False
-            for hit_pos in hit_positions:
-                if tp[0] == hit_pos[0] and tp[1] == hit_pos[1]:
-                    found = True
-
+            if tp in hit_positions:
+                found = True
             # Checks that all the required finds are there.
             self.assertTrue(found)
-            # Checks that there are no extra finds.
-            self.assertEqual(len(hit_positions), len(test_positions))
+        # Checks that there are no extra finds.
+        self.assertEqual(len(hit_positions), len(test_positions))
 
-    def test_adjacent_selection_long_segments(self):
+    # Check whether the length of the found segments is correct.
+    def test_adjacent_selection_segment_length(self):
         board = [['', 'H', '', '', ''],
                  ['', 'H', '', '', ''],
                  ['L', '', 'M', '', ''],
                  ['H', 'M', 'H', 'H', 'H'],
                  ['', 'M', '', 'H', '']]
-        ships = [2, 3]
         test_positions = [(0, 0, 1), (0, 2, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 2), (2, 4, 1), (4, 0, 1),
                           (4, 2, 2), (4, 4, 2)]
-        hit_positions = ai_help.possible_hits(board, ships)
+        hit_positions = ai_help.adjacent_to_hits(board)
         for tp in test_positions:
-            found = False
-            for hit_pos in hit_positions:
-                if tp[0] == hit_pos[0] and tp[1] == hit_pos[1]:
-                    self.assertEqual(tp[2], hit_positions[hit_pos])
+            if tp in hit_positions:
+                self.assertEqual(tp[2], hit_positions['seq_length'])
+
+
+class TestHitPossibilities(unittest.TestCase):
+
+    # Test whether the possibilities work below a sequence.
+    def test_hit_bottom(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['', '', '', '', ''],
+                 ['', 'M', '', '', 'H']]
+        ships = [2, 3, 4, 5]
+
+        hit_pos_A = (2, 1)
+        hit_option_A = {'seq_length': 2, 'direction': 'bottom'}
+        test_count_A = 2  # The ship of length 2 is impossible as the length already is 2 and the length 5 does not fit.
+
+        hit_pos_B = (4, 4)
+        hit_option_B = {'seq_length': 1, 'direction': 'bottom'}
+        test_count_B = 0  # None fit as there are no fields below and no ship size is <=1
+
+        self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
+        self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
+
+    # Test whether the possibilities work on top of a sequence.
+    def test_hit_top(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['', '', '', '', ''],
+                 ['', 'M', '', '', 'H']]
+        ships = [2, 3, 4, 5, 6]
+
+        hit_pos_A = (3, 4)
+        hit_option_A = {'seq_length': 1, 'direction': 'top'}
+        test_count_A = 4  # The ship of length 1 is impossible as the length already is 1 and the length 6 does not fit.
+
+        hit_pos_B = (0, 1)
+        hit_option_B = {'seq_length': 2, 'direction': 'top'}
+        test_count_B = 0  # None fit as there are no fields on top.
+
+        self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
+        self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
+
+    # Test whether the possibilities work to the left of a sequence.
+    def test_hit_right(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['', '', '', '', ''],
+                 ['', 'M', '', '', 'H']]
+        ships = [2, 3, 4, 5, 6]
+
+        hit_pos_A = (0, 2)
+        hit_option_A = {'seq_length': 1, 'direction': 'right'}
+        test_count_A = 3  # No ship size above 4 fits.
+
+        hit_pos_B = (4, 4)
+        hit_option_B = {'seq_length': 1, 'direction': 'right'}
+        test_count_B = 0  # None fit as there are no fields to the right.
+
+        self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
+        self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
+
+    # Test whether the possibilities work to the right of a sequence.
+    def test_hit_left(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['', '', '', '', ''],
+                 ['H', 'M', '', '', 'H']]
+        ships = [1, 2, 3, 4, 5]
+
+        hit_pos_A = (4, 3)
+        hit_option_A = {'seq_length': 1, 'direction': 'left'}
+        test_count_A = 2  # The ship of length 1 is impossible and only lengths 2,3 fit.
+
+        hit_pos_B = (4, 0)
+        hit_option_B = {'seq_length': 1, 'direction': 'left'}
+        test_count_B = 0  # None fit as there are no fields to the left.
+
+        self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
+        self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
+
 
 
 if __name__ == '__main__':
