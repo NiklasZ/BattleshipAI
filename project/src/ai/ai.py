@@ -14,6 +14,7 @@ class AI:
     def load_bot(self, name):
         location = self.PLUGIN_PATH + name
         self.bot = getattr(importlib.import_module(location), 'Bot')
+        print("Loading bot:", self.bot.bot_name)
 
     # Asks bot to either place its ships or start hunting based on game state.
     def make_decision(self, game_state):
