@@ -7,8 +7,9 @@ from src.ai.ai_helpers import adjacent_to_hits
 
 class Bot:
 
-    def __init__(self):
+    def __init__(self, opponent_profile):
         self.bot_name = 'Bouillabaisse'
+        self.opponent_profile = opponent_profile
 
     def make_move(self, game_state):
         opp_ships = np.array(ai_help.ships_still_afloat(game_state))
@@ -18,14 +19,14 @@ class Bot:
         if 'H' in opp_board:
             moves = possible_hits(opp_board, opp_ships)
 
-            #Select by highest sequence length.
-            #highest_length = max(moves, key=lambda x: moves[x]['seq_length'])
+            # Select by highest sequence length.
+            # highest_length = max(moves, key=lambda x: moves[x]['seq_length'])
             max_len_pos = max(moves, key=lambda x: moves[x]['seq_length'])
             max_length = moves[max_len_pos]['seq_length']
-            length_choices = {k : v for k,v in moves.items() if v['seq_length'] == max_length}
+            length_choices = {k: v for k, v in moves.items() if v['seq_length'] == max_length}
 
-            #Then select by highest number of possible ship alignments.
-            max_fit_pos = max(length_choices,key=lambda x: length_choices[x]['possible_alignments'])
+            # Then select by highest number of possible ship alignments.
+            max_fit_pos = max(length_choices, key=lambda x: length_choices[x]['possible_alignments'])
             max_fit = length_choices[max_fit_pos]['possible_alignments']
             choices = [move for move in length_choices if length_choices[move]['possible_alignments'] == max_fit]
             y, x = choice(choices)

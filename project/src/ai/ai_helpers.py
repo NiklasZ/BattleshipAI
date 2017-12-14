@@ -249,3 +249,15 @@ def add_to_hits(hits, coord, seq_length, direction):
     elif seq_length > hits[coord]['seq_length']:
         print("Why is this executing?!")
         hits[coord] = {'seq_length': seq_length, 'direction': direction}
+
+# Count the number of hits and misses on a board.
+def count_hits_and_misses(board):
+    hits = 0
+    misses = 0
+    for (y,x),val in np.ndenumerate(board):
+        if 'H' in board[y][x] or 'S' in board[y][x]:
+            hits += 1
+        if board[y][x] == 'M':
+            misses += 1
+
+    return {'hits':hits,'misses':misses}

@@ -486,7 +486,6 @@ class BattleshipsDemoClient(Frame):
             return
 
         game_state = poll_results['GameState']
-        print(poll_results)
 
         title = format('Game ID: ' + str(game_state['GameId']))
         game_style_details = self.game_styles_listbox.get('active').split(" | ")
@@ -506,7 +505,7 @@ class BattleshipsDemoClient(Frame):
         #Create bot and game recording
         recorder = record.GameRecorder(game_state, self.bot_id)
         bot = ai.AI()
-        bot.load_bot(self.bot_id)
+        bot.load_bot(self.bot_id,game_state['OpponentId'],game_state['GameId'])
         while True:
             if self.game_cancelled:
                 break
@@ -520,7 +519,9 @@ class BattleshipsDemoClient(Frame):
                     self.resultText.config(text="Invalid Move")
                 elif move_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + move_results['Result'])
-                    print("Game ended")
+                    print("Game won!")
+                    recorder.record_turn(move_results['GameState'])
+                    bot.add_game_to_profile(poll_results['GameState'], True)
                     break
                 else:
                     game_state = move_results['GameState']
@@ -535,15 +536,18 @@ class BattleshipsDemoClient(Frame):
 
                 if poll_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + poll_results['Result'])
+                    print("Game lost!")
+                    recorder.record_turn(poll_results['GameState'])
+                    bot.add_game_to_profile(poll_results['GameState'], False)
                     break
                 game_state = poll_results['GameState']
-
+            # END OF GAME
+            recorder.record_turn(game_state)
             if game_state['GameStatus'] != 'RUNNING':
                 break
 
             self.middleFrameRight.update()
             recorder.record_turn(game_state)
-
             try:
                 if int(self.thinking_time_entry.get()) > 0:
                     time.sleep((int(self.thinking_time_entry.get()) / 1000))
