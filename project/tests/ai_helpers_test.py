@@ -128,24 +128,24 @@ class TestHitPossibilities(unittest.TestCase):
         board = [['', 'H', '', '', ''],
                  ['', 'H', '', '', ''],
                  ['L', '', 'M', '', ''],
-                 ['', '', '', '', ''],
-                 ['', 'M', '', '', 'H']]
+                 ['', '', '', 'H', ''],
+                 ['', 'M', '', '', '']]
         ships = [2, 3, 4, 5]
 
         hit_pos_A = (2, 1)
         hit_option_A = {'seq_length': 2, 'direction': 'bottom'}
         test_count_A = 2  # The ship of length 2 is impossible as the length already is 2 and the length 5 does not fit.
 
-        hit_pos_B = (4, 4)
+        hit_pos_B = (3, 3)
         hit_option_B = {'seq_length': 1, 'direction': 'bottom'}
-        test_count_B = 0  # None fit as there are no fields below and no ship size is <=1
+        test_count_B = 6  # 2 and 5 can only be fir in one alignment, whereas 3 and 4 have two possible alignments each.
 
         self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
         self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
 
     # Test whether the possibilities work on top of a sequence.
     def test_hit_top(self):
-        board = [['', 'H', '', '', ''],
+        board = [['', '', '', '', ''],
                  ['', 'H', '', '', ''],
                  ['L', '', 'M', '', ''],
                  ['', '', '', '', ''],
@@ -157,8 +157,8 @@ class TestHitPossibilities(unittest.TestCase):
         test_count_A = 4  # The ship of length 1 is impossible as the length already is 1 and the length 6 does not fit.
 
         hit_pos_B = (0, 1)
-        hit_option_B = {'seq_length': 2, 'direction': 'top'}
-        test_count_B = 0  # None fit as there are no fields on top.
+        hit_option_B = {'seq_length': 1, 'direction': 'top'}
+        test_count_B = 3  # There is 1 fit for each ship from 2-4
 
         self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
         self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
@@ -169,16 +169,16 @@ class TestHitPossibilities(unittest.TestCase):
                  ['', 'H', '', '', ''],
                  ['L', '', 'M', '', ''],
                  ['', '', '', '', ''],
-                 ['', 'M', '', '', 'H']]
+                 ['', 'M', '', 'H', '']]
         ships = [2, 3, 4, 5, 6]
 
         hit_pos_A = (0, 2)
         hit_option_A = {'seq_length': 1, 'direction': 'right'}
-        test_count_A = 3  # No ship size above 4 fits.
+        test_count_A = 6  # ship 2 has one fit, ship 3 has two fits, ship 4 has two fits and ship 5 has 1 fit.
 
         hit_pos_B = (4, 4)
         hit_option_B = {'seq_length': 1, 'direction': 'right'}
-        test_count_B = 0  # None fit as there are no fields to the right.
+        test_count_B = 2  # There is a fit for ships 2 & 3.
 
         self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
         self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
@@ -196,13 +196,12 @@ class TestHitPossibilities(unittest.TestCase):
         hit_option_A = {'seq_length': 1, 'direction': 'left'}
         test_count_A = 2  # The ship of length 1 is impossible and only lengths 2,3 fit.
 
-        hit_pos_B = (4, 0)
+        hit_pos_B = (0, 0)
         hit_option_B = {'seq_length': 1, 'direction': 'left'}
-        test_count_B = 0  # None fit as there are no fields to the left.
+        test_count_B = 4  # There is 1 fit for each ship from 2-5
 
         self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
         self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
-
 
 
 if __name__ == '__main__':

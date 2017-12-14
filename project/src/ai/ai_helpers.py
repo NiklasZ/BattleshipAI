@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# TODO perform subset checks on alignments to remove irrelevant choices entirely (useful when going probabilistic).
 # =============================================================================
 # The code below shows a selection of helper functions designed to make the
 # time to understand the environment and to get a game running as short as
@@ -94,18 +95,20 @@ def ships_still_afloat(game_state):
 
 
 # Ascertains if a given ship can be deployed at a given location
-def can_deploy(i, j, board, length, orientation):
+# The optional valid_fields parameter is for when other types of spaces such as hits (H) should be considered acceptable
+# to deploy over.
+def can_deploy(i, j, board, length, orientation, valid_fields=['']):
     if orientation == "V":  # If we are trying to place ship vertically
         if i + length - 1 >= len(board):  # If ship doesn't fit within board boundaries
             return False  # Ship not deployed
         for l in range(length):  # For every section of the ship
-            if board[i + l][j] != "":  # If there is something on the board obstructing the ship
+            if board[i + l][j] not in valid_fields:  # If there is something on the board obstructing the ship
                 return False  # Ship not deployed
     else:  # If we are trying to place ship horizontally
         if j + length - 1 >= len(board[0]):  # If ship doesn't fit within board boundaries
             return False  # Ship not deployed
         for l in range(length):  # For every section of the ship
-            if board[i][j + l] != "":  # If there is something on the board obstructing the ship
+            if board[i][j + l] not in valid_fields:  # If there is something on the board obstructing the ship
                 return False  # Ship not deployed
     return True  # Ship fits
 
@@ -118,33 +121,41 @@ def translate_move(row, column):
 # For a hit option, calculate the number of possible alignments and return the results + possibilities.
 def possible_hit_ships(opp_board, opp_ships, position, hit_option):
     # Remove ships that are too short to be possible.
-    possible_ships = np.array(opp_ships) - hit_option['seq_length']
-    possible_ships = possible_ships[possible_ships > 0]
+    # possible_ships = np.array(opp_ships) - hit_option['seq_length']
+    # possible_ships = possible_ships[possible_ships > 0]
+    seq_length = hit_option['seq_length']
     ship_fits = 0
 
     # Based on the sequence's position, ascertain if there is enough room.
-    # This works by trying to deploy a ship such that it ls positioned where the
-    # known sequence is.
-    for ship_length in possible_ships:
+    # This works by trying to deploy a ship in the ranges that include both the sequence and the given position.
+    for ship_length in opp_ships:
         if hit_option['direction'] == 'top':
-            start_idx = position[0] - ship_length + 1  # needs to be inclusive of empty position.
-            if start_idx >= 0 and can_deploy(start_idx, position[1], opp_board, ship_length, 'V'):
-                ship_fits += 1
+            start_idx = position[0] - (ship_length - seq_length) + 1
+            final_idx = position[0]
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
+                    ship_fits += 1
 
         if hit_option['direction'] == 'bottom':
-            start_idx = position[0]
-            if start_idx < len(opp_board) and can_deploy(start_idx, position[1], opp_board, ship_length, 'V'):
-                ship_fits += 1
+            start_idx = position[0] - ship_length + 1
+            final_idx = position[0] - seq_length
+            for idx in range(start_idx, final_idx+1):
+                if idx >= 0 and can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
+                    ship_fits += 1
 
         if hit_option['direction'] == 'left':
-            start_idx = position[1] - ship_length + 1
-            if start_idx >= 0 and can_deploy(position[0], start_idx, opp_board, ship_length, 'H'):
-                ship_fits += 1
+            start_idx = position[1] - (ship_length - seq_length) + 1
+            final_idx = position[1]
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
+                    ship_fits += 1
 
         if hit_option['direction'] == 'right':
-            start_idx = position[1]
-            if start_idx < len(opp_board[0]) and can_deploy(position[0], start_idx, opp_board, ship_length, 'H'):
-                ship_fits += 1
+            start_idx = position[1] - ship_length + 1
+            final_idx = position[1] - seq_length
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
+                    ship_fits += 1
 
     return ship_fits
 
