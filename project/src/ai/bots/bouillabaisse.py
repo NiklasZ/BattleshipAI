@@ -2,52 +2,55 @@ from random import choice
 import numpy as np  # Base N-dimensional array package
 import src.ai.ai_helpers as ai_help
 
-# TODO adjust hitting to only bother with directions that make sense (e.g don't fire at positions where the ship cannot exist).
-# TODO perform subset checks on alignments to remove irrelevant choices entirely (useful when going probabilistic).
-# TODO rearrange so as to fit any number of bots.
 from src.ai.ai_helpers import adjacent_to_hits
 
 
 class Bot:
 
     def __init__(self):
-        self.bot_name = 'NbotI'
+        self.bot_name = 'Bouillabaisse'
 
-    def make_move(self):
-        opp_ships = np.array(ai_help.ships_still_afloat(gameState))
-        opp_board = np.array(gameState['OppBoard'])
+    def make_move(self, game_state):
+        opp_ships = np.array(ai_help.ships_still_afloat(game_state))
+        opp_board = np.array(game_state['OppBoard'])
 
         # If there are hits, try nearby targets.
         if 'H' in opp_board:
             moves = possible_hits(opp_board, opp_ships)
-            highest = max(moves, key=lambda x: moves[x])
-            choices = [move for move in moves if moves[move] == moves[highest]]
+
+            #Select by highest sequence length.
+            #highest_length = max(moves, key=lambda x: moves[x]['seq_length'])
+            max_len_pos = max(moves, key=lambda x: moves[x]['seq_length'])
+            max_length = moves[max_len_pos]['seq_length']
+            length_choices = {k : v for k,v in moves.items() if v['seq_length'] == max_length}
+
+            #Then select by highest number of possible ship alignments.
+            max_fit_pos = max(length_choices,key=lambda x: length_choices[x]['possible_alignments'])
+            max_fit = length_choices[max_fit_pos]['possible_alignments']
+            choices = [move for move in length_choices if length_choices[move]['possible_alignments'] == max_fit]
             y, x = choice(choices)
 
-        # If not, find possible targets from the grid.
+        # If not, search for possible targets from the grid.
         else:
             moves = possible_targets(opp_board, opp_ships)
             highest = max(moves, key=lambda x: moves[x])
             choices = [move for move in moves if moves[move] == moves[highest]]
-            print('Targeting...')
-            print('choices:', choices)
-
             y, x = choice(choices)
 
-        print("Firing at:", translateMove(y, x))
-        return translateMove(y, x)
+        print("Firing at:", ai_help.translate_move(y, x))
+        return ai_help.translate_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, gameState):
-        return ai_help.deployRandomly(gameState)
+        return ai_help.deploy_randomly(gameState)
 
 
+# Get possible hits given the opponent's board and remaining ships.
 def possible_hits(opp_board, opp_ships):
-    hit_options = adjacent_to_hits(opp_board, opp_ships)
+    hit_options = adjacent_to_hits(opp_board)
     for hit in hit_options:
         possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
-        hit_options[hit]['possible_ships'] = possible_ship_count
-
+        hit_options[hit]['possible_alignments'] = possible_ship_count
     return hit_options
 
 

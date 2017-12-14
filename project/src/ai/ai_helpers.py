@@ -82,10 +82,10 @@ def ships_still_afloat(game_state):
     for k in range(len(game_state["Ships"])):  # For every ship
         afloat.append(game_state["Ships"][k])  # Add it to the list of afloat ships
         ships_removed.append(False)  # Set its removed from afloat list to false
-    for i in range(len(game_state["opp_board"])):
-        for j in range(len(game_state["opp_board"][0])):  # For every grid on the board
+    for i in range(len(game_state["OppBoard"])):
+        for j in range(len(game_state["OppBoard"][0])):  # For every grid on the board
             for k in range(len(game_state["Ships"])):  # For every ship
-                if str(k) in game_state["opp_board"][i][j] and not ships_removed[
+                if str(k) in game_state["OppBoard"][i][j] and not ships_removed[
                     k]:  # If we can see the ship number on our opponent's board and we haven't already removed it from the afloat list
                     afloat.remove(game_state["Ships"][
                                       k])  # Remove that ship from the afloat list (we can only see an opponent's ship number when the ship has been sunk)

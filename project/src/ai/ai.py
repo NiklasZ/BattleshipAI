@@ -13,14 +13,14 @@ class AI:
     # Class name needs to be "Bot" to be found.
     def load_bot(self, name):
         location = self.PLUGIN_PATH + name
-        self.bot = getattr(importlib.import_module(location), 'Bot')
+        self.bot = getattr(importlib.import_module(location), 'Bot')() #Gets the class Bot and creates an instance of it.
         print("Loading bot:", self.bot.bot_name)
 
     # Asks bot to either place its ships or start hunting based on game state.
     def make_decision(self, game_state):
         if game_state['Round'] == 0:
-            self.bot.place_ships(self, game_state)
+            return self.bot.place_ships(game_state)
         else:
-            self.bot.make_move(self, game_state)
+            return self.bot.make_move(game_state)
 
 
