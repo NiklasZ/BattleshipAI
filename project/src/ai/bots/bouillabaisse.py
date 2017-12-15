@@ -2,9 +2,11 @@ from random import choice
 import numpy as np  # Base N-dimensional array package
 import src.ai.ai_helpers as ai_help
 
-from src.ai.ai_helpers import adjacent_to_hits
+from src.ai.ai_helpers import adjacent_to_hits, deploy_ship
 
-
+# The Bouillabaisse bot is the the 1st completed bot.
+# It uses mostly deterministic methods to choose targets.
+# Simultaneously its ship placement is completely random.
 class Bot:
 
     def __init__(self, opponent_profile):
@@ -17,6 +19,7 @@ class Bot:
 
         # If there are hits, try nearby targets.
         if 'H' in opp_board:
+
             moves = possible_hits(opp_board, opp_ships)
 
             # Select by highest sequence length.
@@ -43,7 +46,7 @@ class Bot:
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, gameState):
-        return ai_help.deploy_randomly(gameState)
+        return deploy_randomly(gameState)
 
 
 # Get possible hits given the opponent's board and remaining ships.
@@ -61,3 +64,22 @@ def possible_targets(opp_board, opp_ships):
     # Get all non-zero possible alignements and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets
+
+# Deploys all the ships randomly on a blank board
+def deploy_randomly(game_state):
+    move = []  # Initialise move as an emtpy list
+    orientation = None
+    row = None
+    column = None
+    for i in range(len(game_state["Ships"])):  # For every ship that needs to be deployed
+        deployed = False
+        while not deployed:  # Keep randomly choosing locations until a valid one is chosen
+            row = np.random.randint(0, len(game_state["MyBoard"]) - 1)  # Randomly pick a row
+            column = np.random.randint(0, len(game_state["MyBoard"][0]) - 1)  # Randomly pick a column
+            orientation = np.random.choice(["H", "V"])  # Randomly pick an orientation
+            if deploy_ship(row, column, game_state["MyBoard"], game_state["Ships"][i], orientation,
+                           i):  # If ship can be successfully deployed to that location...
+                deployed = True  # ...then the ship has been deployed
+        move.append({"Row": chr(row + 65), "Column": (column + 1),
+                     "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
+    return {"Placement": move}  # Return the move

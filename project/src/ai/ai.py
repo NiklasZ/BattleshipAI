@@ -98,9 +98,8 @@ class AI:
             evasions = [game['evasion'] for game in game_stats]
             avg_evasion = np.average(evasions)
 
-            print('---', self.opponent_profile['bot_name'], 'vs:', self.opponent_profile['opponent_name'], '---')
+            print('\n---', self.opponent_profile['bot_name'], 'vs:', self.opponent_profile['opponent_name'], '---')
             print('Games played:',len(game_stats))
             print('Win rate:','{:10.3f}'.format(avg_wins*100)+'%')
             print('Average accuracy:', '{:10.3f}'.format(avg_accuracy*100) + '%     ',
-                  'Average evasion:','{:10.3f}'.format(avg_evasion*100) + '%')
-            print('\n')
+                  'Average evasion:','{:10.3f}'.format(avg_evasion*100) + '%\n')

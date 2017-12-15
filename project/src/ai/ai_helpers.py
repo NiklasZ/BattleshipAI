@@ -34,26 +34,6 @@ def alignments_in(y, x, opp_board, opp_ships):
     return valid_alignments
 
 
-# Deploys all the ships randomly on a blank board
-def deploy_randomly(game_state):
-    move = []  # Initialise move as an emtpy list
-    orientation = None
-    row = None
-    column = None
-    for i in range(len(game_state["Ships"])):  # For every ship that needs to be deployed
-        deployed = False
-        while not deployed:  # Keep randomly choosing locations until a valid one is chosen
-            row = np.random.randint(0, len(game_state["MyBoard"]) - 1)  # Randomly pick a row
-            column = np.random.randint(0, len(game_state["MyBoard"][0]) - 1)  # Randomly pick a column
-            orientation = np.random.choice(["H", "V"])  # Randomly pick an orientation
-            if deploy_ship(row, column, game_state["MyBoard"], game_state["Ships"][i], orientation,
-                           i):  # If ship can be successfully deployed to that location...
-                deployed = True  # ...then the ship has been deployed
-        move.append({"Row": chr(row + 65), "Column": (column + 1),
-                     "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
-    return {"Placement": move}  # Return the move
-
-
 # Returns whether given location can fit given ship onto given board and, if it can, updates the given board with that ships position
 def deploy_ship(i, j, board, length, orientation, ship_num):
     if orientation == "V":  # If we are trying to place ship vertically
