@@ -50,7 +50,7 @@ class AI:
         if 'biasing' in performance:
             self.opponent_profile['biasing'][self.game_id] = performance['biasing']
 
-        io.store_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
+        io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
 
     # Measure how well a game went.
     def assess_game_performance(self, final_state):

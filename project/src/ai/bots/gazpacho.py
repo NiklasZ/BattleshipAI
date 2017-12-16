@@ -50,6 +50,8 @@ class Bot:
         if result is None:
             return ai_help.deploy_randomly(game_state)
 
+        print("Found possible ship placement after", result[-1]['attempts'], 'attempts')
+
         return format_ship_deployment(result)
 
 
@@ -65,7 +67,7 @@ def possible_hits(opp_board, opp_ships):
 # Look for possible targets based on alignment information.
 def possible_targets(opp_board, opp_ships):
     alignments = ai_help.possible_alignments(opp_board, opp_ships)
-    # Get all non-zero possible alignements and their indices.
+    # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets
 
@@ -85,7 +87,6 @@ def randomly_space_ships(player_board, ships):
 
     # Search for a placement that spaces out the ships as as desired.
     if place_spaced_ship(available_coords, player_board, ships, placements, attempts):
-        print("Found possible ship placement after", placements[-1]['attempts'], 'attempts')
         return placements
 
     # In case there is no way to place the ships to be completely non-adjacent.

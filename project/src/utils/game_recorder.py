@@ -10,7 +10,7 @@ class GameRecorder:
         self.gameId = game_state['GameId']  # ID of the game.
 
         # Initial setup.
-        self.save_path = io.create_dirs_for_bots(self.bot_name, self.opponent_name)
+        io.create_dirs(self.bot_name, self.opponent_name)
         self.log = [datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S')]
         self.log.append('\nGameId: ' + str(self.gameId))
         self.log.append('\nShips: ' + str(game_state['Ships']))
@@ -28,7 +28,7 @@ class GameRecorder:
     # Wrap up and write the file.
     def record_end(self):
         self.log.append('\n\n--GAME END--')
-        io.write_to_file(''.join(self.log), self.save_path + '/' + str(self.gameId))
+        io.save_game_log(self.bot_name, self.opponent_name, self.gameId, ''.join(self.log))
 
     # Converts board to somewhat more readable string.
     def board_to_string(self, board):
