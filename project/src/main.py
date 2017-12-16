@@ -1,4 +1,4 @@
-#External imports
+# External imports
 import time
 import requests
 import locale
@@ -471,7 +471,8 @@ class BattleshipsDemoClient(Frame):
 
             if poll_results['Result'] == 'SUCCESS':
                 break
-            if poll_results['Result'] == 'INVALID_PLAYER_KEY' or poll_results['Result'] == 'GAME_HAS_ENDED' or poll_results['Result'] == 'GAME_WAS_STOPPED':
+            if poll_results['Result'] == 'INVALID_PLAYER_KEY' or poll_results['Result'] == 'GAME_HAS_ENDED' or \
+                    poll_results['Result'] == 'GAME_WAS_STOPPED':
                 self.game_cancelled = True
             time.sleep(2)
 
@@ -502,10 +503,10 @@ class BattleshipsDemoClient(Frame):
 
         self.middleFrame.update()
 
-        #Create bot and game recording
+        # Create bot and game recording
         recorder = record.GameRecorder(game_state, self.bot_id)
         bot = ai.AI()
-        bot.load_bot(self.bot_id,game_state['OpponentId'],game_state['GameId'])
+        bot.load_bot(self.bot_id, game_state['OpponentId'], game_state['GameId'])
         while True:
             if self.game_cancelled:
                 break
@@ -658,7 +659,8 @@ parser.add_argument('--gamestyle', default=None, help='play this gamestyle')
 parser.add_argument('--timeout', default=0, help='have this timeout in milliseconds')
 parser.add_argument('--playanothergame', action='store_true', help='Play another game when complete')
 parser.add_argument('--dontplaysameuserbot', action='store_true', help='Don\'t play another user in the same account')
-parser.add_argument('--closeaftergame', action='store_true', help='Close the client once the game has completed (takes priority over playanothergame)')
+parser.add_argument('--closeaftergame', action='store_true',
+                    help='Close the client once the game has completed (takes priority over playanothergame)')
 cmd_args = parser.parse_args()
 root = Tk()
 my_gui = BattleshipsDemoClient(root, cmd_args)

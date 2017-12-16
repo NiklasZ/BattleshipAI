@@ -92,6 +92,14 @@ def can_deploy(i, j, board, length, orientation, valid_fields=['']):
                 return False  # Ship not deployed
     return True  # Ship fits
 
+# Removes a specified ship from a board.
+def remove_ship(y,x, board, ship, orientation):
+    if orientation == 'V':
+        for i in range(y,y+ship):
+            board[i][x] = ''
+    else:
+        for j in range(x,x+ship):
+            board[y][j] = ''
 
 # Given a valid coordinate on the board returns it as a correctly formatted move
 def translate_move(row, column):
@@ -241,3 +249,22 @@ def count_hits_and_misses(board):
             misses += 1
 
     return {'hits':hits,'misses':misses}
+
+# Deploys all the ships randomly on a blank board
+def deploy_randomly(game_state):
+    move = []  # Initialise move as an emtpy list
+    orientation = None
+    row = None
+    column = None
+    for i in range(len(game_state["Ships"])):  # For every ship that needs to be deployed
+        deployed = False
+        while not deployed:  # Keep randomly choosing locations until a valid one is chosen
+            row = np.random.randint(0, len(game_state["MyBoard"]) - 1)  # Randomly pick a row
+            column = np.random.randint(0, len(game_state["MyBoard"][0]) - 1)  # Randomly pick a column
+            orientation = np.random.choice(["H", "V"])  # Randomly pick an orientation
+            if deploy_ship(row, column, game_state["MyBoard"], game_state["Ships"][i], orientation,
+                           i):  # If ship can be successfully deployed to that location...
+                deployed = True  # ...then the ship has been deployed
+        move.append({"Row": chr(row + 65), "Column": (column + 1),
+                     "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
+    return {"Placement": move}  # Return the move
