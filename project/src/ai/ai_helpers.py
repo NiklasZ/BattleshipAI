@@ -92,18 +92,25 @@ def can_deploy(i, j, board, length, orientation, valid_fields=['']):
                 return False  # Ship not deployed
     return True  # Ship fits
 
+
 # Removes a specified ship from a board.
-def remove_ship(y,x, board, ship, orientation):
+def remove_ship(y, x, board, ship, orientation):
     if orientation == 'V':
-        for i in range(y,y+ship):
+        for i in range(y, y + ship):
             board[i][x] = ''
     else:
-        for j in range(x,x+ship):
+        for j in range(x, x + ship):
             board[y][j] = ''
+
 
 # Given a valid coordinate on the board returns it as a correctly formatted move
 def translate_move(row, column):
     return {"Row": chr(row + 65), "Column": (column + 1)}
+
+
+# Given a valid coordinate on the board returns it as a correctly formatted ship
+def translate_ship(row, column, orientation):
+    return {"Row": chr(row + 65), "Column": (column + 1), "Orientation": orientation}
 
 
 # For a hit option, calculate the number of possible alignments and return the results + possibilities.
@@ -127,7 +134,7 @@ def possible_hit_ships(opp_board, opp_ships, position, hit_option):
         if hit_option['direction'] == 'bottom':
             start_idx = position[0] - ship_length + 1
             final_idx = position[0] - seq_length
-            for idx in range(start_idx, final_idx+1):
+            for idx in range(start_idx, final_idx + 1):
                 if idx >= 0 and can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
                     ship_fits += 1
 
@@ -238,17 +245,19 @@ def add_to_hits(hits, coord, seq_length, direction):
         print("Why is this executing?!")
         hits[coord] = {'seq_length': seq_length, 'direction': direction}
 
+
 # Count the number of hits and misses on a board.
 def count_hits_and_misses(board):
     hits = 0
     misses = 0
-    for (y,x),val in np.ndenumerate(board):
+    for (y, x), val in np.ndenumerate(board):
         if 'H' in board[y][x] or 'S' in board[y][x]:
             hits += 1
         if board[y][x] == 'M':
             misses += 1
 
-    return {'hits':hits,'misses':misses}
+    return {'hits': hits, 'misses': misses}
+
 
 # Deploys all the ships randomly on a blank board
 def deploy_randomly(game_state):

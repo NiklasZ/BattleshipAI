@@ -2,8 +2,6 @@ from random import choice
 import numpy as np  # Base N-dimensional array package
 import src.ai.ai_helpers as ai_help
 
-from src.ai.ai_helpers import adjacent_to_hits, deploy_randomly
-
 
 # The Bouillabaisse bot is the the 1st completed bot.
 # It uses mostly deterministic methods to choose targets.
@@ -47,12 +45,12 @@ class Bot:
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
-        return deploy_randomly(game_state)
+        return ai_help.deploy_randomly(game_state)
 
 
 # Get possible hits given the opponent's board and remaining ships.
 def possible_hits(opp_board, opp_ships):
-    hit_options = adjacent_to_hits(opp_board)
+    hit_options = ai_help.adjacent_to_hits(opp_board)
     for hit in hit_options:
         possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
         hit_options[hit]['possible_alignments'] = possible_ship_count
@@ -62,7 +60,6 @@ def possible_hits(opp_board, opp_ships):
 # Look for possible targets based on alignment information.
 def possible_targets(opp_board, opp_ships):
     alignments = ai_help.possible_alignments(opp_board, opp_ships)
-    # Get all non-zero possible alignements and their indices.
+    # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets
-

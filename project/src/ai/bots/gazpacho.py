@@ -3,8 +3,6 @@ from random import shuffle
 import numpy as np  # Base N-dimensional array package
 import src.ai.ai_helpers as ai_help
 
-from src.ai.ai_helpers import adjacent_to_hits, deploy_ship
-
 
 class Bot:
 
@@ -40,19 +38,24 @@ class Bot:
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
 
-        print("Firing at:", ai_help.translate_move(y, x))
         return ai_help.translate_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
         ships = game_state['Ships']
         player_board = game_state['MyBoard']
-        pass
+        result = randomly_space_ships(player_board, ships)
+
+        # In case it is impossible to place the ships in a non-adjacent way.
+        if result is None:
+            return ai_help.deploy_randomly(game_state)
+
+        return format_ship_deployment(result)
 
 
 # Get possible hits given the opponent's board and remaining ships.
 def possible_hits(opp_board, opp_ships):
-    hit_options = adjacent_to_hits(opp_board)
+    hit_options = ai_help.adjacent_to_hits(opp_board)
     for hit in hit_options:
         possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
         hit_options[hit]['possible_alignments'] = possible_ship_count
@@ -77,15 +80,17 @@ def randomly_space_ships(player_board, ships):
         if val == '':
             available_coords.append((y, x))
 
-    available_coords = set(shuffle(available_coords))
+    shuffle(available_coords)
+    available_coords = set(available_coords)
 
     # Search for a placement that spaces out the ships as as desired.
     if place_spaced_ship(available_coords, player_board, ships, placements, attempts):
-        print("Found possible placement after", placements[-1]['attempts'], attempts)
-        return player_board
+        print("Found possible ship placement after", placements[-1]['attempts'], 'attempts')
+        return placements
 
     # In case there is no way to place the ships to be completely non-adjacent.
     return None
+
 
 # Try to place a ship in one of the available coordinates and then recurse and try with the next ship.
 def place_spaced_ship(available_coords, board, ships, placements, attempts):
@@ -98,19 +103,23 @@ def place_spaced_ship(available_coords, board, ships, placements, attempts):
     ship_no = len(ships)
 
     # Go through each possible coordinate and alignment.
-    for coord in available_coords:
+    shuffled_coords = list(available_coords)
+    shuffle(shuffled_coords)
+
+    for coord in shuffled_coords:
         y, x = coord
 
         # The directions are shuffled to avoid predictable alignments whenever it is easy to place ships.
         orientation = ['V', 'H']
-        for o in shuffle(orientation):
+        shuffle(orientation)
+        for o in orientation:
             # Try to deploy the ship
-            result = ai_help.deploy_ship(y, x, board, ship, o, ship_no)
+            result = deploy_ship(coord, board, ship, o, ship_no, available_coords)
             attempts += 1
             if result:
                 # If successful, append the positioning (avoids having to search for it later).
                 placements.append(
-                    {'position': coord, 'ship': ship, 'ship_no': ship_no, 'direction': 'V', 'attempts': attempts})
+                    {'position': coord, 'ship': ship, 'ship_no': ship_no, 'orientation': o, 'attempts': attempts})
                 # Copy the available coordinates and remove the used ones.
                 new_available_coords = set(available_coords)
                 remove_neighbouring_coords(coord, o, new_available_coords, ship, board)
@@ -128,16 +137,18 @@ def place_spaced_ship(available_coords, board, ships, placements, attempts):
     # Not all ships have been placed and the permutations in this part are exhausted.
     return False
 
+
 # Removes all neighbouring coordinates for a ship.
-def remove_neighbouring_coords(position, direction, available_coords, ship, board):
+def remove_neighbouring_coords(position, orientation, available_coords, ship, board):
     y, x = position
 
-    if direction == 'V':
+    if orientation == 'V':
         for i in range(y, y + ship):
             remove_neighbours((i, x), available_coords, board)
-    if direction == 'H':
+    if orientation == 'H':
         for j in range(x, x + ship):
             remove_neighbours((y, j), available_coords, board)
+
 
 # Removes all neighbouring coordinates around a coordinate, as well as the coordinate itself.
 def remove_neighbours(coordinate, available_coords, board):
@@ -152,10 +163,42 @@ def remove_neighbours(coordinate, available_coords, board):
     # Check below
     if y + 1 < len(board) and (y + 1, x) in available_coords:
         available_coords.remove((y + 1, x))
-        # Check left
+    # Check left
     if x - 1 >= 0 and (y, x - 1) in available_coords:
         available_coords.remove((y, x - 1))
     # Check right
     if x + 1 < len(board[0]) and (y, x + 1) in available_coords:
         available_coords.remove((y, x + 1))
 
+
+# Variant of the ship deployment algorithm that checks the set of available coordinates, rather then the board.
+def deploy_ship(coordinate, board, length, orientation, ship_num, available_coordinates):
+    y, x = coordinate
+    if orientation == "V":  # If we are trying to place ship vertically
+        if y + length - 1 >= len(board):  # If ship doesn't fit within board boundaries
+            return False  # Ship not deployed
+        for i in range(length):  # For every section of the ship
+            if (y + i, x) not in available_coordinates:  # If there is something on the board obstructing the ship
+                return False  # Ship not deployed
+        for i in range(length):  # For every section of the ship
+            board[y + i][x] = str(ship_num)  # Place the ship on the board
+    else:  # If we are trying to place ship horizontally
+        if x + length - 1 >= len(board[0]):  # If ship doesn't fit within board boundaries
+            return False  # Ship not deployed
+        for j in range(length):  # For every section of the ship
+            if (y, x + j) not in available_coordinates:  # If there is something on the board obstructing the ship
+                return False  # Ship not deployed
+        for j in range(length):  # For every section of the ship
+            board[y][x + j] = str(ship_num)  # Place the ship on the board
+    return True  # Ship deployed
+
+
+def format_ship_deployment(placements):
+    accepted_format = []
+    ordered = sorted(placements, key=lambda x: x['ship_no'])
+    for entry in ordered:
+        y, x = entry['position']
+        accepted_format.append(ai_help.translate_ship(y, x, entry['orientation']))
+
+    accepted_format = {"Placement": accepted_format}
+    return accepted_format
