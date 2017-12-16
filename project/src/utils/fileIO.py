@@ -12,7 +12,7 @@ PROFILE_FILE = 'profile.p'
 def load_profile(bot_name, opponent_name):
     profile_path = DATA_DIR + BOTS_DIR + '/' + bot_name + OPP_DIR + '/' + opponent_name + '/profile.p'
     if os.path.exists(profile_path):
-        return pickle.load(open( profile_path, "rb" ))
+        return pickle.load(open(profile_path, "rb" ))
     else:
         return None
 
