@@ -1,35 +1,67 @@
 import numpy as np
 
 
-# TODO perform subset checks on alignments to remove irrelevant choices entirely (useful when going probabilistic).
 # =============================================================================
 # The code below shows a selection of helper functions designed to make the
 # time to understand the environment and to get a game running as short as
 # possible. The code also serves as an example of how to manipulate the myBoard
 # and opp_board dictionaries that are in gameState.
 
-def possible_alignments(opp_board, opp_ships):
+# Gets all possible alignments on a board. The optional parameter allows
+# removing redundant alignments.
+def possible_alignments(opp_board, opp_ships, reduce=False):
     alignments = np.zeros((len(opp_board), len(opp_board[0])), dtype=int)
+    # A dict of coordinates and their valid ship alignments.
+    ship_sets = {}
     # y is the row, x is the column
     for y in range(0, len(opp_board)):
         for x in range(0, len(opp_board[0])):
             if opp_board[y][x] == '':
-                alignments[y, x] = alignments_in(y, x, opp_board, opp_ships)
+                ship_alignments = alignments_in(y, x, opp_board, opp_ships)
+
+                if reduce:
+
+                    #If is first element, add it and skip checking against itself.
+                    if len(ship_sets) == 0:
+                        ship_sets[(y, x)] = ship_alignments
+                        continue
+
+                    is_subset = False
+
+                    #Compare new alignments to existing ones.
+                    for coord, valid_alignments in list(ship_sets.items()):
+                        # If it is a subset of existing alignments, do not add it.
+                        if ship_alignments.issubset(valid_alignments):
+                            is_subset = True
+                            break
+                        # If an existing element is its subset, remove it.
+                        elif valid_alignments.issubset(ship_alignments):
+                            del ship_sets[coord]
+
+                    if not is_subset:
+                        ship_sets[(y, x)] = ship_alignments
+
+                else:
+                    ship_sets[(y, x)] = ship_alignments
+
+    for coord, valid_alignments in ship_sets.items():
+        alignments[coord] = len(valid_alignments)
 
     return alignments
 
 
 # Gets number of valid alignments for a position
+# Will return a set of ship deployments each in the form of (y - i, x, ship_length, orientation)
 def alignments_in(y, x, opp_board, opp_ships):
-    valid_alignments = 0
-    for shipLength in opp_ships:
-        for i in range(0, shipLength):
+    valid_alignments = set()
+    for ship_length in opp_ships:
+        for i in range(0, ship_length):
             # Vertical alignment attempts
-            if y - i >= 0 and can_deploy(y - i, x, opp_board, shipLength, "V"):
-                valid_alignments += 1
+            if y - i >= 0 and can_deploy(y - i, x, opp_board, ship_length, "V"):
+                valid_alignments.add((y - i, x, ship_length, 'V'))
             # Horizontal alignment attempts
-            if x - i >= 0 and can_deploy(y, x - i, opp_board, shipLength, "H"):
-                valid_alignments += 1
+            if x - i >= 0 and can_deploy(y, x - i, opp_board, ship_length, "H"):
+                valid_alignments.add((y, x - i, ship_length, 'H'))
 
     return valid_alignments
 

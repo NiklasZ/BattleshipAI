@@ -40,9 +40,9 @@ class TestAlignments(unittest.TestCase):
                  ['L', '', 'M', '', ''],
                  ['', 'M', '', '', ''],
                  ['', 'M', '', '', '']]
-        self.assertEqual(ai_help.alignments_in(0, 0, board, ships), 3)
-        self.assertEqual(ai_help.alignments_in(0, 4, board, ships), 4)
-        self.assertEqual(ai_help.alignments_in(2, 1, board, ships), 0)
+        self.assertEqual(len(ai_help.alignments_in(0, 0, board, ships)), 3)
+        self.assertEqual(len(ai_help.alignments_in(0, 4, board, ships)), 4)
+        self.assertEqual(len(ai_help.alignments_in(2, 1, board, ships)), 0)
 
     # Check alignments on a whole board.
     def test_whole_board_alignment(self):
@@ -63,6 +63,24 @@ class TestAlignments(unittest.TestCase):
                 self.assertEqual(a, a_t)
         self.assertEqual(np.sum(alignments), alignment_test_sum)
 
+
+    def test_whole_board_alignment_reduced(self):
+        ships = [2, 3, 4]
+        board = [['', '', '', ''],
+                 ['', 'H', '', ''],
+                 ['L', '', 'M', ''],
+                 ['', 'M', '', '']]
+        alignments_test = [[4, 5, 6, 6],
+                           [0, 0, 2, 6],
+                           [0, 0, 0, 5],
+                           [0, 0, 0, 4]]
+        alignment_test_sum = 38
+
+        alignments = ai_help.possible_alignments(board, ships, reduce=True)
+        for row, row_t in zip(alignments, alignments_test):
+            for a, a_t in zip(row, row_t):
+                self.assertEqual(a, a_t)
+        self.assertEqual(np.sum(alignments), alignment_test_sum)
 
 class TestHitSelection(unittest.TestCase):
 

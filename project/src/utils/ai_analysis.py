@@ -37,7 +37,7 @@ def plot_performance_vs_opponent(bot_names, opponent_name, running_avg_window, g
         axarr[idx].set_title(opponent_name + ' - ' + measure)
         axarr[idx].set_ylabel('percentage')
         # axarr[idx].set_xlabel('First 100 games')
-        axarr[idx].set_ylim((0, 1))
+        #axarr[idx].set_ylim((0, 1))
         axarr[idx].legend()
 
     plt.savefig(io.DATA_DIR + io.IMG_DIR + '/perf_vs_' + opponent_name + '.svg')

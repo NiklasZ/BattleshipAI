@@ -66,7 +66,7 @@ def possible_hits(opp_board, opp_ships):
 
 # Look for possible targets based on alignment information.
 def possible_targets(opp_board, opp_ships):
-    alignments = ai_help.possible_alignments(opp_board, opp_ships)
+    alignments = ai_help.possible_alignments(opp_board, opp_ships, reduce=True)
     # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets
