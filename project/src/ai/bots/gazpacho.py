@@ -193,7 +193,7 @@ def deploy_ship(coordinate, board, length, orientation, ship_num, available_coor
             board[y][x + j] = str(ship_num)  # Place the ship on the board
     return True  # Ship deployed
 
-
+# Format a dictionary of placements to fit the REST format.
 def format_ship_deployment(placements):
     accepted_format = []
     ordered = sorted(placements, key=lambda x: x['ship_no'])

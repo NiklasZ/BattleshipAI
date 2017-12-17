@@ -29,6 +29,8 @@ class AI:
     # Asks bot to either place its ships or start hunting based on game state.
     def make_decision(self, game_state):
         if game_state['Round'] == 0:
+            align_temp = ai_help.possible_alignments(game_state['OppBoard'],game_state['Ships'])
+            print('min:',np.min(align_temp[np.nonzero(align_temp)]),'max:',np.max(align_temp))
             return self.bot.place_ships(game_state)
         else:
             return self.bot.make_move(game_state)

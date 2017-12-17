@@ -103,16 +103,6 @@ def remove_ship(y, x, board, ship, orientation):
             board[y][j] = ''
 
 
-# Given a valid coordinate on the board returns it as a correctly formatted move
-def translate_move(row, column):
-    return {"Row": chr(row + 65), "Column": (column + 1)}
-
-
-# Given a valid coordinate on the board returns it as a correctly formatted ship
-def translate_ship(row, column, orientation):
-    return {"Row": chr(row + 65), "Column": (column + 1), "Orientation": orientation}
-
-
 # For a hit option, calculate the number of possible alignments and return the results + possibilities.
 def possible_hit_ships(opp_board, opp_ships, position, hit_option):
     # Remove ships that are too short to be possible.
@@ -277,3 +267,13 @@ def deploy_randomly(game_state):
         move.append({"Row": chr(row + 65), "Column": (column + 1),
                      "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
     return {"Placement": move}  # Return the move
+
+
+# Given a valid coordinate on the board returns it as a correctly formatted move
+def translate_move(row, column):
+    return {"Row": chr(row + 65), "Column": (column + 1)}
+
+
+# Given a valid coordinate on the board returns it as a correctly formatted ship
+def translate_ship(row, column, orientation):
+    return {"Row": chr(row + 65), "Column": (column + 1), "Orientation": orientation}
