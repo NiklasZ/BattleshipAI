@@ -8,8 +8,8 @@ import src.utils.fileIO as io
 class AI:
 
     def __init__(self):
-        #TODO make this dynamic rather than fixed.
-        self.PLUGIN_PATH = 'src.ai.bots.' # this is lazy but writing it dynamically is too much of a pain right now.
+        # TODO make this dynamic rather than fixed.
+        self.PLUGIN_PATH = 'src.ai.bots.'  # this is lazy but writing it dynamically is too much of a pain right now.
         self.bot = None
         self.opponent_profile = None
         self.opponent_name = None
@@ -23,7 +23,8 @@ class AI:
         self.game_id = game_id
 
         location = self.PLUGIN_PATH + name
-        self.bot = getattr(importlib.import_module(location), 'Bot')(self.opponent_profile) #Gets the class Bot and creates an instance of it.
+        self.bot = getattr(importlib.import_module(location), 'Bot')(
+            self.opponent_profile)  # Gets the class Bot and creates an instance of it.
         print("Loading bot:", self.bot.bot_name)
 
     # Asks bot to either place its ships or start hunting based on game state.
@@ -39,12 +40,17 @@ class AI:
             self.generate_profile()
 
         performance = self.assess_game_performance(game_state)
-
         self.opponent_profile['games'][self.game_id] = performance['games']
 
         # Ascertain if the game was actually won or not.
+        self.opponent_profile['games'][self.game_id].update({'victory': won})
 
-        self.opponent_profile['games'][self.game_id].update({'victory':won})
+        # Tag game as either land or no land for later analysis.
+        if ai_help.is_there_land(np.array(game_state['MyBoard'])):
+            map_type = 'land'
+        else:
+            map_type = 'no land'
+        self.opponent_profile['games'][self.game_id].update({'map_type': map_type})
 
         # Add misc data to state.
         if 'biasing' in performance:
@@ -65,24 +71,24 @@ class AI:
         bot_stats = ai_help.count_hits_and_misses(final_state['MyBoard'])
         opp_stats = ai_help.count_hits_and_misses(final_state['OppBoard'])
 
-        accuracy = opp_stats['hits']/(opp_stats['hits']+opp_stats['misses'])
-        evasion = 1-bot_stats['hits']/(opp_stats['hits']+opp_stats['misses'])
+        accuracy = opp_stats['hits'] / (opp_stats['hits'] + opp_stats['misses'])
+        evasion = 1 - bot_stats['hits'] / (opp_stats['hits'] + opp_stats['misses'])
 
-        metrics = {'accuracy':accuracy,'evasion':evasion}
+        metrics = {'accuracy': accuracy, 'evasion': evasion}
         if 'games' in performance:
             performance['games'].update(metrics)
         else:
-            performance.update({'games':metrics})
+            performance.update({'games': metrics})
 
         return performance
 
     # Generates an empty opponent profile.
     def generate_profile(self):
-        self.opponent_profile = {'bot_name':self.bot.bot_name,
-                                 'opponent_name':self.opponent_name,
-                                 'games':{},
-                                 'biasing':{},
-                                 'misc':{}}
+        self.opponent_profile = {'bot_name': self.bot.bot_name,
+                                 'opponent_name': self.opponent_name,
+                                 'games': {},
+                                 'biasing': {},
+                                 'misc': {}}
 
     # Computes and displays play-time stats in this match-up.
     def display_play_stats(self):
@@ -90,7 +96,7 @@ class AI:
             game_stats = self.opponent_profile['games'].values()
 
             wins = [game['victory'] for game in game_stats]
-            avg_wins = wins.count(True)/len(wins)
+            avg_wins = wins.count(True) / len(wins)
 
             accuracies = [game['accuracy'] for game in game_stats]
             avg_accuracy = np.average(accuracies)
@@ -99,7 +105,7 @@ class AI:
             avg_evasion = np.average(evasions)
 
             print('\n---', self.opponent_profile['bot_name'], 'vs:', self.opponent_profile['opponent_name'], '---')
-            print('Games played:',len(game_stats))
-            print('Win rate:','{:10.3f}'.format(avg_wins*100)+'%')
-            print('Average accuracy:', '{:10.3f}'.format(avg_accuracy*100) + '%     ',
-                  'Average evasion:','{:10.3f}'.format(avg_evasion*100) + '%\n')
+            print('Games played:', len(game_stats))
+            print('Win rate:', '{:10.3f}'.format(avg_wins * 100) + '%')
+            print('Average accuracy:', '{:10.3f}'.format(avg_accuracy * 100) + '%     ',
+                  'Average evasion:', '{:10.3f}'.format(avg_evasion * 100) + '%\n')

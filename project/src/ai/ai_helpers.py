@@ -300,6 +300,12 @@ def deploy_randomly(game_state):
                      "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
     return {"Placement": move}  # Return the move
 
+# Detects if there is land on the board
+def is_there_land(board):
+    for cell in np.nditer(board):
+        if cell == 'L':
+            return True
+    return False
 
 # Given a valid coordinate on the board returns it as a correctly formatted move
 def translate_move(row, column):
