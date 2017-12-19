@@ -53,8 +53,8 @@ class AI:
         self.opponent_profile['games'][self.game_id].update({'map_type': map_type})
 
         # Add misc data to state.
-        if 'biasing' in performance:
-            self.opponent_profile['biasing'][self.game_id] = performance['biasing']
+        if 'heuristics_used' in performance:
+            self.opponent_profile['games']['heuristics_used'][self.game_id] = performance['heuristics_used']
 
         io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
 
@@ -86,8 +86,11 @@ class AI:
     def generate_profile(self):
         self.opponent_profile = {'bot_name': self.bot.bot_name,
                                  'opponent_name': self.opponent_name,
+                                 # Contains mapping of game_id:[interesting statistics about the game]
                                  'games': {},
-                                 'biasing': {},
+                                 # Contains current heuristic values to use for the opponent.
+                                 'heuristics': {},
+                                 # Anything else.
                                  'misc': {}}
 
     # Computes and displays play-time stats in this match-up.

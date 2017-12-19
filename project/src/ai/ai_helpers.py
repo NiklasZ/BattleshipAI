@@ -20,27 +20,7 @@ def possible_alignments(opp_board, opp_ships, reduce=False):
                 ship_alignments = alignments_in(y, x, opp_board, opp_ships)
 
                 if reduce:
-
-                    #If is first element, add it and skip checking against itself.
-                    if len(ship_sets) == 0:
-                        ship_sets[(y, x)] = ship_alignments
-                        continue
-
-                    is_subset = False
-
-                    #Compare new alignments to existing ones.
-                    for coord, valid_alignments in list(ship_sets.items()):
-                        # If it is a subset of existing alignments, do not add it.
-                        if ship_alignments.issubset(valid_alignments):
-                            is_subset = True
-                            break
-                        # If an existing element is its subset, remove it.
-                        elif valid_alignments.issubset(ship_alignments):
-                            del ship_sets[coord]
-
-                    if not is_subset:
-                        ship_sets[(y, x)] = ship_alignments
-
+                    reduce_alignments(y, x, ship_sets, ship_alignments)
                 else:
                     ship_sets[(y, x)] = ship_alignments
 
@@ -48,6 +28,32 @@ def possible_alignments(opp_board, opp_ships, reduce=False):
         alignments[coord] = len(valid_alignments)
 
     return alignments
+
+
+# Function that detects and removes redundant alignments if they are complete subsets of another cell.
+# In practical terms this means that there is no point at firing at some cell A on a board because there exists another
+# cell B that when fired at, can eliminate all possibilities of there being a ship in A.
+
+def reduce_alignments(y, x, ship_sets, ship_alignments):
+    # If is first element, add it and skip checking against itself.
+    if len(ship_sets) == 0:
+        ship_sets[(y, x)] = ship_alignments
+        return
+
+    is_subset = False
+
+    # Compare new alignments to existing ones.
+    for coord, valid_alignments in list(ship_sets.items()):
+        # If it is a subset of existing alignments, do not add it.
+        if ship_alignments.issubset(valid_alignments):
+            is_subset = True
+            break
+        # If an existing element is its subset, remove it.
+        elif valid_alignments.issubset(ship_alignments):
+            del ship_sets[coord]
+
+    if not is_subset:
+        ship_sets[(y, x)] = ship_alignments
 
 
 # Gets number of valid alignments for a position
@@ -300,12 +306,14 @@ def deploy_randomly(game_state):
                      "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
     return {"Placement": move}  # Return the move
 
+
 # Detects if there is land on the board
 def is_there_land(board):
     for cell in np.nditer(board):
         if cell == 'L':
             return True
     return False
+
 
 # Given a valid coordinate on the board returns it as a correctly formatted move
 def translate_move(row, column):

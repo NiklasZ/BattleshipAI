@@ -63,7 +63,6 @@ class TestAlignments(unittest.TestCase):
                 self.assertEqual(a, a_t)
         self.assertEqual(np.sum(alignments), alignment_test_sum)
 
-
     def test_whole_board_alignment_reduced(self):
         ships = [2, 3, 4]
         board = [['', '', '', ''],
@@ -81,6 +80,7 @@ class TestAlignments(unittest.TestCase):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)
         self.assertEqual(np.sum(alignments), alignment_test_sum)
+
 
 class TestHitSelection(unittest.TestCase):
 
