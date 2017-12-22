@@ -3,29 +3,36 @@ import numpy as np
 
 import src.ai.ai_helpers as ai_help
 import src.utils.fileIO as io
+import src.ai.bot_learning as bot_learn
 
 
 class AI:
 
-    def __init__(self):
+    def __init__(self, game_state):
         # TODO make this dynamic rather than fixed.
         self.PLUGIN_PATH = 'src.ai.bots.'  # this is lazy but writing it dynamically is too much of a pain right now.
         self.bot = None
         self.opponent_profile = None
-        self.opponent_name = None
+        self.opponent_name = game_state['OpponentId']
+        self.game_id = game_state['GameId']
+        if ai_help.is_there_land(np.array(game_state['MyBoard'])):
+            self.map_type = 'land'
+        else:
+            self.map_type = 'no land'
 
     # Receive the name of a bot module to load from the 'bots' sub-folder.
     # Class name needs to be "Bot" to be found.
-    def load_bot(self, name, opponent_name, game_id):
-        self.opponent_profile = io.load_profile(name, opponent_name)
+    def load_bot(self, name, heuristic_choices=None):
+        self.opponent_profile = io.load_profile(name, self.opponent_name)
         self.display_play_stats()
-        self.opponent_name = opponent_name
-        self.game_id = game_id
 
         location = self.PLUGIN_PATH + name
-        self.bot = getattr(importlib.import_module(location), 'Bot')(
-            self.opponent_profile)  # Gets the class Bot and creates an instance of it.
+        # Gets the class Bot and creates an instance of it.
+        self.bot = getattr(importlib.import_module(location), 'Bot')()
         print("Loading bot:", self.bot.bot_name)
+
+        if heuristic_choices:
+            self._load_heuristics(heuristic_choices)
 
     # Asks bot to either place its ships or start hunting based on game state.
     def make_decision(self, game_state):
@@ -33,6 +40,27 @@ class AI:
             return self.bot.place_ships(game_state)
         else:
             return self.bot.make_move(game_state)
+
+    # Load the selected heuristics of a bot.
+    def _load_heuristics(self, heuristic_names):
+        set_heuristics = getattr(self.bot, "set_heuristics")
+        # Check if the bot has a heuristics setting function.
+        if callable(set_heuristics):
+            heuristics = []
+            # For each heuristic, load the respective function and weight.
+            for name in heuristic_names:
+                heuristic_func = getattr(bot_learn, name)
+                # Try to load the heuristic relevant to the map type.
+                if self.map_type in self.opponent_profile['heuristics'][name]:
+                    heuristic_val = self.opponent_profile['heuristics'][name][self.map_type]
+                # Load a generic heuristic
+                else:
+                    heuristic_val = self.opponent_profile['heuristics'][name]['general']
+
+                heuristics.append((heuristic_func, heuristic_val))
+
+            # Set the heuristics for the bot.
+            set_heuristics(heuristics)
 
     # Add the current game (has to have ended) to the bot's opponent profile.
     def add_game_to_profile(self, game_state, won):
@@ -46,15 +74,7 @@ class AI:
         self.opponent_profile['games'][self.game_id].update({'victory': won})
 
         # Tag game as either land or no land for later analysis.
-        if ai_help.is_there_land(np.array(game_state['MyBoard'])):
-            map_type = 'land'
-        else:
-            map_type = 'no land'
-        self.opponent_profile['games'][self.game_id].update({'map_type': map_type})
-
-        # Add misc data to state.
-        if 'heuristics_used' in performance:
-            self.opponent_profile['games']['heuristics_used'][self.game_id] = performance['heuristics_used']
+        self.opponent_profile['games'][self.game_id].update({'map_type': self.map_type})
 
         io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
 

@@ -505,8 +505,9 @@ class BattleshipsDemoClient(Frame):
 
         # Create bot and game recording
         recorder = record.GameRecorder(game_state, self.bot_id)
-        bot = ai.AI()
-        bot.load_bot(self.bot_id, game_state['OpponentId'], game_state['GameId'])
+        bot = ai.AI(game_state)
+        bot.load_bot(self.bot_id)
+
         while True:
             if self.game_cancelled:
                 break

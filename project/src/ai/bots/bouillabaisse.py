@@ -8,9 +8,8 @@ import src.ai.ai_helpers as ai_help
 # Simultaneously its ship placement is completely random.
 class Bot:
 
-    def __init__(self, opponent_profile):
+    def __init__(self):
         self.bot_name = 'Bouillabaisse'
-        self.opponent_profile = opponent_profile
 
     def make_move(self, game_state):
         opp_ships = np.array(ai_help.ships_still_afloat(game_state))

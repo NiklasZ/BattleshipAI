@@ -1,13 +1,20 @@
 from random import choice
 from random import shuffle
 import numpy as np  # Base N-dimensional array package
+
 import src.ai.ai_helpers as ai_help
+import src.ai.bot_learning as bot_learn
 
 
 class Bot:
 
-    def __init__(self):
-        self.bot_name = 'Gazpacho'
+    def __init__(self, opponent_profile):
+        self.bot_name = 'Pho'
+        self.opponent_profile = opponent_profile
+        self.heuristics = []
+
+    def set_heuristics(self, heuristics):
+        self.heuristics = heuristics
 
     def make_move(self, game_state):
         opp_ships = np.array(ai_help.ships_still_afloat(game_state))
@@ -16,7 +23,7 @@ class Bot:
         # If there are hits, try nearby targets.
         if 'H' in opp_board:
 
-            moves = possible_hits(opp_board, opp_ships)
+            moves = self.possible_hits(opp_board, opp_ships)
 
             # Select by highest sequence length.
             # highest_length = max(moves, key=lambda x: moves[x]['seq_length'])
@@ -32,7 +39,7 @@ class Bot:
 
         # If not, search for possible targets from the grid.
         else:
-            moves = possible_targets(opp_board, opp_ships)
+            moves = self.possible_targets(opp_board, opp_ships)
             highest = max(moves, key=lambda x: moves[x])
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
@@ -53,22 +60,20 @@ class Bot:
 
         return format_ship_deployment(result)
 
+    # Get possible hits given the opponent's board and remaining ships.
+    def possible_hits(self, opp_board, opp_ships):
+        hit_options = ai_help.adjacent_to_hits(opp_board)
+        for hit in hit_options:
+            possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
+            hit_options[hit]['possible_alignments'] = possible_ship_count
+        return hit_options
 
-# Get possible hits given the opponent's board and remaining ships.
-def possible_hits(opp_board, opp_ships):
-    hit_options = ai_help.adjacent_to_hits(opp_board)
-    for hit in hit_options:
-        possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
-        hit_options[hit]['possible_alignments'] = possible_ship_count
-    return hit_options
-
-
-# Look for possible targets based on alignment information.
-def possible_targets(opp_board, opp_ships):
-    alignments = ai_help.possible_alignments(opp_board, opp_ships, reduce=True)
-    # Get all non-zero possible alignments and their indices.
-    targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
-    return targets
+    # Look for possible targets based on alignment information.
+    def possible_targets(self, opp_board, opp_ships):
+        scores = bot_learn.get_targeting_scores(opp_board, opp_ships, self.heuristics)
+        # Get all non-zero possible alignments and their indices.
+        targets = {(y, x): val for y, row in enumerate(scores) for x, val in enumerate(row)}
+        return targets
 
 
 # Deploys all the ships randomly on a board, so that none of them are adjacent.
