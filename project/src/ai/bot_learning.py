@@ -2,7 +2,7 @@ import src.ai.ai_helpers as ai_help
 import numpy as np
 
 
-def learn_offensive_heuristics():
+def learn_():
     pass
 
 
@@ -21,7 +21,7 @@ def get_targeting_scores(opp_board, opp_ships, heuristics):
     for (y, x), val in np.ndenumerate(opp_board):
         if val == '':
             ship_alignments = ai_help.alignments_in(y, x, opp_board, opp_ships)
-            ship_sets[(y,x)] = ship_alignments
+            ship_sets[(y, x)] = ship_alignments
             ai_help.reduce_alignments(y, x, reduced_ship_sets, ship_alignments)
 
             for ship in ship_alignments:

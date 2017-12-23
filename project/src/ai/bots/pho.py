@@ -1,6 +1,6 @@
 from random import choice
 from random import shuffle
-import numpy as np  # Base N-dimensional array package
+import numpy as np
 
 import src.ai.ai_helpers as ai_help
 import src.ai.bot_learning as bot_learn
@@ -8,16 +8,15 @@ import src.ai.bot_learning as bot_learn
 
 class Bot:
 
-    def __init__(self, opponent_profile):
+    def __init__(self):
         self.bot_name = 'Pho'
-        self.opponent_profile = opponent_profile
         self.heuristics = []
 
     def set_heuristics(self, heuristics):
         self.heuristics = heuristics
 
     def make_move(self, game_state):
-        opp_ships = np.array(ai_help.ships_still_afloat(game_state))
+        opp_ships = np.array(ai_help.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
         # If there are hits, try nearby targets.
@@ -44,7 +43,7 @@ class Bot:
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
 
-        return ai_help.translate_move(y, x)
+        return ai_help.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):

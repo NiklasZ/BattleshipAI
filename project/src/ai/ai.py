@@ -5,12 +5,12 @@ import src.ai.ai_helpers as ai_help
 import src.utils.fileIO as io
 import src.ai.bot_learning as bot_learn
 
+# TODO make this dynamic rather than fixed.
+PLUGIN_PATH = 'src.ai.bots' # this is lazy but writing it dynamically is too much of a pain right now.
 
 class AI:
 
     def __init__(self, game_state):
-        # TODO make this dynamic rather than fixed.
-        self.PLUGIN_PATH = 'src.ai.bots.'  # this is lazy but writing it dynamically is too much of a pain right now.
         self.bot = None
         self.opponent_profile = None
         self.opponent_name = game_state['OpponentId']
@@ -26,7 +26,7 @@ class AI:
         self.opponent_profile = io.load_profile(name, self.opponent_name)
         self.display_play_stats()
 
-        location = self.PLUGIN_PATH + name
+        location = PLUGIN_PATH + '.' + name
         # Gets the class Bot and creates an instance of it.
         self.bot = getattr(importlib.import_module(location), 'Bot')()
         print("Loading bot:", self.bot.bot_name)

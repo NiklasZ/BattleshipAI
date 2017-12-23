@@ -94,18 +94,18 @@ def deploy_ship(i, j, board, length, orientation, ship_num):
 
 
 # Returns a list of the lengths of your opponent's ships that haven't been sunk
-def ships_still_afloat(game_state):
+def ships_still_afloat(ships, opp_board):
     afloat = []
     ships_removed = []
-    for k in range(len(game_state["Ships"])):  # For every ship
-        afloat.append(game_state["Ships"][k])  # Add it to the list of afloat ships
+    for k in range(len(ships)):  # For every ship
+        afloat.append(ships[k])  # Add it to the list of afloat ships
         ships_removed.append(False)  # Set its removed from afloat list to false
-    for i in range(len(game_state["OppBoard"])):
-        for j in range(len(game_state["OppBoard"][0])):  # For every grid on the board
-            for k in range(len(game_state["Ships"])):  # For every ship
-                if str(k) in game_state["OppBoard"][i][j] and not ships_removed[
+    for i in range(len(opp_board)):
+        for j in range(len(opp_board[0])):  # For every grid on the board
+            for k in range(len(ships)):  # For every ship
+                if str(k) in opp_board[i][j] and not ships_removed[
                     k]:  # If we can see the ship number on our opponent's board and we haven't already removed it from the afloat list
-                    afloat.remove(game_state["Ships"][
+                    afloat.remove(ships[
                                       k])  # Remove that ship from the afloat list (we can only see an opponent's ship number when the ship has been sunk)
                     ships_removed[
                         k] = True  # Record that we have now removed this ship so we know not to try and remove it again
@@ -315,9 +315,14 @@ def is_there_land(board):
     return False
 
 
-# Given a valid coordinate on the board returns it as a correctly formatted move
-def translate_move(row, column):
+# Given a valid coordinate on the board returns it as a correctly formatted move on a battleship grid.
+def translate_coord_to_move(row, column):
     return {"Row": chr(row + 65), "Column": (column + 1)}
+
+
+# Given a formatted move on a battleship, extract the original array indices.
+def translate_move_to_coord(move):
+    return ord(move['Row']) - 65, move['Column'] - 1
 
 
 # Given a valid coordinate on the board returns it as a correctly formatted ship

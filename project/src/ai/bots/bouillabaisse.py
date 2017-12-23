@@ -12,7 +12,7 @@ class Bot:
         self.bot_name = 'Bouillabaisse'
 
     def make_move(self, game_state):
-        opp_ships = np.array(ai_help.ships_still_afloat(game_state))
+        opp_ships = np.array(ai_help.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
         # If there are hits, try nearby targets.
@@ -39,8 +39,8 @@ class Bot:
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
 
-        # print("Firing at:", ai_help.translate_move(y, x))
-        return ai_help.translate_move(y, x)
+        # print("Firing at:", ai_help.translate_coord_to_move(y, x))
+        return ai_help.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
