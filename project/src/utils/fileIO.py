@@ -13,7 +13,7 @@ GAMES_LOG_FILE = 'log.p'
 # Load a bot's opponent profile. Returns a dict if it exists.
 def load_profile(bot_name, opponent_name):
     profile_path = DATA_DIR + BOTS_DIR + '/' + bot_name + OPP_DIR + '/' + opponent_name + '/profile.p'
-    load_pickle_if_exists(profile_path)
+    return load_pickle_if_exists(profile_path)
 
 
 # Store a bot's opponent profile.
@@ -33,7 +33,7 @@ def save_game_log(bot_name, opponent_name, game_id, log, pickled_log):
 
 def load_pickled_game_log(bot_name, opponent_name):
     game_log_path = DATA_DIR + BOTS_DIR + '/' + bot_name + OPP_DIR + '/' + opponent_name + GAMES_DIR + '/' + GAMES_LOG_FILE
-    load_pickle_if_exists(game_log_path)
+    return load_pickle_if_exists(game_log_path)
 
 
 def load_pickle_if_exists(path):

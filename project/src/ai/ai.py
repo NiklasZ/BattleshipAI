@@ -24,12 +24,12 @@ class AI:
     # Class name needs to be "Bot" to be found.
     def load_bot(self, name, heuristic_choices=None):
         self.opponent_profile = io.load_profile(name, self.opponent_name)
+        print(self.opponent_profile)
         self.display_play_stats()
 
         location = PLUGIN_PATH + '.' + name
         # Gets the class Bot and creates an instance of it.
         self.bot = getattr(importlib.import_module(location), 'Bot')()
-        print("Loading bot:", self.bot.bot_name)
 
         if heuristic_choices:
             self._load_heuristics(heuristic_choices)
