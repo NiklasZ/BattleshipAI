@@ -3,19 +3,19 @@ import src.ai.ai as ai
 import src.ai.ai_helpers as ai_help
 import importlib
 import numpy as np
+import copy
 
 
 class GameSimulator:
-    def __init__(self, opponent_name, bot_name, player_board, opponent_board, ships, heuristics=None):
+    def __init__(self, bot_name, player_board, opponent_board, ships, heuristics=None):
         self.bot_path = ai.PLUGIN_PATH + '.' + bot_name
         self.bot = getattr(importlib.import_module(self.bot_path), 'Bot')()
-        self.opponent_name = opponent_name
         self.player_board = player_board
         self.opponent_board = opponent_board
-        self.opponent_masked_board = mask_board(self.opponent_board)
+        self.opponent_masked_board = self.mask_board(self.opponent_board)
         self.ships = ships
 
-        set_heuristics = getattr(self.bot, "set_heuristics")
+        set_heuristics = getattr(self.bot, "set_heuristics", None)
 
         # Check if the bot has a heuristics setting function.
         if callable(set_heuristics) and heuristics:
@@ -33,13 +33,12 @@ class GameSimulator:
     def shoot_at_opponent(self, coord):
         y, x = coord
         val = self.opponent_board[y][x]
-
         if len(val) == 0:
             self.opponent_masked_board[y][x] = self.opponent_board[y][x] = 'M'
         elif val.isdigit():
             self.opponent_board[y][x] = 'H' + val
-            self.opponent_masked_board = 'H'
-            self.check_if_sunk(val)
+            self.opponent_masked_board[y][x] = 'H'
+            self.check_if_sunk(int(val))
 
     # Check if a ship that has been shot will now sink and if so, modify the board.
     def check_if_sunk(self, ship_no):
@@ -53,11 +52,10 @@ class GameSimulator:
                 if val == 'H' + str(ship_no):
                     self.opponent_board[y][x] = self.opponent_masked_board[y][x] = 'S' + str(ship_no)
 
+    def mask_board(self, board):
+        masked = copy.deepcopy(board)
+        for (y, x), val in np.ndenumerate(board):
+            if val.isdigit():
+                masked[y][x] = ''
 
-def mask_board(board):
-    masked = np.array(board, copy=True)
-    for (y, x), val in np.ndenumerate(board):
-        if val.isdigit():
-            masked[y, x] = ''
-
-    return masked
+        return masked

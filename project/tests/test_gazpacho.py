@@ -87,8 +87,8 @@ class TestRandomlySpacedShips(unittest.TestCase):
 
             board = np.array(board)
             ships = [2, 3, 3, 4, 5]
-            print(gaz.randomly_space_ships(board, ships))
-            print(board)
+            #print(gaz.randomly_space_ships(board, ships))
+            #print(board)
             self.check_for_neighbours(board)
 
     # Helper method to check if any ship has neighbouring ships. If so, fail.
@@ -123,6 +123,6 @@ class TestRandomlySpacedShips(unittest.TestCase):
 
             board = np.array(board)
             ships = [2, 3, 3, 4, 5]
-            print(gaz.randomly_space_ships(board, ships))
-            print(board)
+            #print(gaz.randomly_space_ships(board, ships))
+            #print(board)
             self.check_for_neighbours(board)

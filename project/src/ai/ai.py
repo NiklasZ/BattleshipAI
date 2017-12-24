@@ -43,7 +43,7 @@ class AI:
 
     # Load the selected heuristics of a bot.
     def _load_heuristics(self, heuristic_names):
-        set_heuristics = getattr(self.bot, "set_heuristics")
+        set_heuristics = getattr(self.bot, "set_heuristics",None)
         # Check if the bot has a heuristics setting function.
         if callable(set_heuristics):
             heuristics = []

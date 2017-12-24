@@ -221,6 +221,7 @@ class TestHitPossibilities(unittest.TestCase):
         self.assertEqual(test_count_A, ai_help.possible_hit_ships(board, ships, hit_pos_A, hit_option_A))
         self.assertEqual(test_count_B, ai_help.possible_hit_ships(board, ships, hit_pos_B, hit_option_B))
 
+
 class BoardTranslation(unittest.TestCase):
 
     def test_ship_translation(self):
@@ -231,9 +232,9 @@ class BoardTranslation(unittest.TestCase):
         test_y = 'B'
         test_x = 3
         test_ship_orientation = 'H'
-        test_dict = {'Row':test_y, 'Column': test_x, 'Orientation': test_ship_orientation}
+        test_dict = {'Row': test_y, 'Column': test_x, 'Orientation': test_ship_orientation}
 
-        self.assertEqual(test_dict,ai_help.translate_ship(ship_y, ship_x, ship_orientation))
+        self.assertEqual(test_dict, ai_help.translate_ship(ship_y, ship_x, ship_orientation))
 
     def test_coord_translation(self):
         y = 0
@@ -241,11 +242,11 @@ class BoardTranslation(unittest.TestCase):
 
         test_y = 'A'
         test_x = 4
-        test_dict = {'Row':test_y, 'Column':test_x}
+        test_dict = {'Row': test_y, 'Column': test_x}
 
-        self.assertEqual(test_dict, ai_help.translate_coord_to_move(y,x))
+        self.assertEqual(test_dict, ai_help.translate_coord_to_move(y, x))
+
     def test_move_translation(self):
-
         y = 'E'
         x = 5
         move_dict = {'Row': y, 'Column': x}
@@ -253,6 +254,8 @@ class BoardTranslation(unittest.TestCase):
         test_y = 4
         test_x = 4
 
-        self.assertEqual((test_y,test_x), ai_help.translate_move_to_coord(move_dict))
+        self.assertEqual((test_y, test_x), ai_help.translate_move_to_coord(move_dict))
+
+
 if __name__ == '__main__':
     unittest.main()
