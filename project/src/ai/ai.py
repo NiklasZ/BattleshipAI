@@ -3,7 +3,7 @@ import numpy as np
 
 import src.ai.ai_helpers as ai_help
 import src.utils.fileIO as io
-import src.ai.bot_learning as bot_learn
+import src.ai.heuristics as heur
 
 # TODO make this dynamic rather than fixed.
 PLUGIN_PATH = 'src.ai.bots' # this is lazy but writing it dynamically is too much of a pain right now.
@@ -24,7 +24,6 @@ class AI:
     # Class name needs to be "Bot" to be found.
     def load_bot(self, name, heuristic_choices=None):
         self.opponent_profile = io.load_profile(name, self.opponent_name)
-        print(self.opponent_profile)
         self.display_play_stats()
 
         location = PLUGIN_PATH + '.' + name
@@ -49,7 +48,7 @@ class AI:
             heuristics = []
             # For each heuristic, load the respective function and weight.
             for name in heuristic_names:
-                heuristic_func = getattr(bot_learn, name)
+                heuristic_func = getattr(heur, name)
                 # Try to load the heuristic relevant to the map type.
                 if self.map_type in self.opponent_profile['heuristics'][name]:
                     heuristic_val = self.opponent_profile['heuristics'][name][self.map_type]

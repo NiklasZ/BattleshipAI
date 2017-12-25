@@ -59,3 +59,15 @@ class GameSimulator:
                 masked[y][x] = ''
 
         return masked
+
+    def attack_until_win(self):
+        while not self.has_won():
+            self.attack_opponent()
+
+
+    def has_won(self):
+        for val in np.nditer(self.opponent_board):
+            if val.isdigit():
+                return False
+
+        return True
