@@ -2,8 +2,8 @@ from unittest import TestCase
 
 import numpy as np
 
-import src.ai
-from src.ai import bot_learning as learn
+import src.ai.ai_helpers as ai_help
+import src.ai.heuristics as heur
 
 
 class TestHeuristicAdjacency(TestCase):
@@ -21,7 +21,7 @@ class TestHeuristicAdjacency(TestCase):
                                  (2, 1), (2, 3),
                                  (3, 2)}
 
-        neighbours = src.ai.heuristics.get_cells_adjacent_to_ships(board)
+        neighbours = heur.get_cells_adjacent_to_ships(board)
 
         self.assertEqual(neighbours, neighbours_cells_test)
 
@@ -47,9 +47,9 @@ class TestHeuristicAdjacency(TestCase):
 
         board = np.array(board)
         adj_weight = 0.5
-        heuristic = (src.ai.heuristics.ship_adjacency, adj_weight)
+        heuristic = (heur.ship_adjacency, adj_weight)
 
-        scores = learn.get_targeting_scores(board, ships, [heuristic])
+        scores = ai_help.get_targeting_scores(board, ships, [heuristic])
         for row, row_t in zip(scores, scores_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)
@@ -77,9 +77,9 @@ class TestHeuristicAdjacency(TestCase):
 
         board = np.array(board)
         adj_weight = 2
-        heuristic = (src.ai.heuristics.ship_adjacency, adj_weight)
+        heuristic = (heur.ship_adjacency, adj_weight)
 
-        scores = learn.get_targeting_scores(board, ships, [heuristic])
+        scores = ai_help.get_targeting_scores(board, ships, [heuristic])
         for row, row_t in zip(scores, scores_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)

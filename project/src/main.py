@@ -506,7 +506,7 @@ class BattleshipsDemoClient(Frame):
         # Create bot and game recording
         recorder = record.GameRecorder(game_state, self.bot_id)
         bot = ai.AI(game_state)
-        bot.load_bot(self.bot_id)
+        bot.load_bot(self.bot_id,heuristic_choices=['ship_adjacency'])
 
         while True:
             if self.game_cancelled:

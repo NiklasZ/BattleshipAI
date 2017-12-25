@@ -54,10 +54,10 @@ class AI:
                     heuristic_val = self.opponent_profile['heuristics'][name][self.map_type]
                 # Load a generic heuristic
                 else:
-                    heuristic_val = self.opponent_profile['heuristics'][name]['general']
+                    heuristic_val = self.opponent_profile['heuristics'][name]['generic']
 
+                print('Loading heuristic:','\''+name+'\'', 'of value', heuristic_val)
                 heuristics.append((heuristic_func, heuristic_val))
-
             # Set the heuristics for the bot.
             set_heuristics(heuristics)
 

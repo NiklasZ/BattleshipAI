@@ -328,3 +328,38 @@ def translate_move_to_coord(move):
 # Given a valid coordinate on the board returns it as a correctly formatted ship
 def translate_ship(row, column, orientation):
     return {"Row": chr(row + 65), "Column": (column + 1), "Orientation": orientation}
+
+# Function that creates targeting scores using provided heuristics.
+# Each heuristic is provided as a tuple of (function, args) in a list.
+def get_targeting_scores(opp_board, opp_ships, heuristics):
+    scores = np.zeros((len(opp_board), len(opp_board[0])), dtype=float)  # final scores
+    cell_modifiers = np.ones((len(opp_board), len(opp_board[0])), dtype=float)  # modifiers to apply to cell.
+    ship_modifiers = {}  # modifiers to apply to ship.
+    # A dict of coordinates and their valid ship alignments. This is useful as some heuristics will need to have
+    # full alignment data to make decisions.
+    ship_sets = {}
+    # A dict of non-redundant coordinates and valid ship alignments. Useful to avoid weighting pointless positions.
+    reduced_ship_sets = {}
+    # y is the row, x is the column
+    for (y, x), val in np.ndenumerate(opp_board):
+        if val == '':
+            ship_alignments = alignments_in(y, x, opp_board, opp_ships)
+            ship_sets[(y, x)] = ship_alignments
+            reduce_alignments(y, x, reduced_ship_sets, ship_alignments)
+
+            for ship in ship_alignments:
+                ship_modifiers[ship] = 1
+
+    # Run each heuristic to modify the scores.
+    for heuristic in heuristics:
+        heuristic[0](cell_modifiers, ship_modifiers, ship_sets, opp_board, heuristic[1])
+
+    # Apply resulting weights.
+    for (y, x), val in np.ndenumerate(scores):
+        # Account for non-available coordinates.
+        if (y, x) in reduced_ship_sets:
+            for ship in reduced_ship_sets[(y, x)]:
+                scores[y, x] += ship_modifiers[ship]
+            scores[y, x] *= cell_modifiers[y, x]
+
+    return scores

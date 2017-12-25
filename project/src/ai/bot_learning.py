@@ -2,8 +2,10 @@ import src.ai.ai_helpers as ai_help
 import src.utils.fileIO as io
 import src.ai.ai as ai
 import src.utils.game_simulator as sim
-import copy
+import src.ai.heuristics as heur
+import lib.blackbox as bb
 
+import copy
 import importlib
 import numpy as np
 
@@ -18,6 +20,7 @@ class Optimiser:
         self.heuristics = []
         self.heuristic_names = []
         self.optimisation_type = None
+        self.map_type = 'generic'
 
     def load_bot(self):
         location = ai.PLUGIN_PATH + '.' + self.bot_name
@@ -28,10 +31,21 @@ class Optimiser:
     def prepare_heuristics(self, chosen_heuristics):
         for h in chosen_heuristics:
             self.heuristic_names.append(h)
-            self.heuristics.append([getattr(self, h)])
+            self.heuristics.append([getattr(heur, h)])
 
-    def save_heuristics(self):
-        pass
+    def save_heuristics(self, values):
+
+        for name, val in zip(self.heuristic_names, values):
+
+            if name not in self.opponent_profile['heuristics']:
+                self.opponent_profile['heuristics'][name] = {}
+
+            if self.map_type in self.opponent_profile['heuristics'][name]:
+                print('Replacing heuristic', '\'' + name + '\'', 'of value',
+                      self.opponent_profile['heuristics'][name][self.map_type], 'with:', val)
+            self.opponent_profile['heuristics'][name][self.map_type] = val
+
+        io.save_profile(self.opponent_profile, self.bot_name, self.opponent_name)
 
     # Chooses k most recent games and picks the initial ship data.
     def prepare_k_offensive_games(self, k):
@@ -53,61 +67,35 @@ class Optimiser:
         misses = []
         hits = []
         for game in self.games:
-            simulation = sim.GameSimulator(self.bot_name, None, game['opp_board'], game['ships'])
+            simulation = sim.GameSimulator(self.bot_name, None, game['opp_board'], game['ships'],
+                                           heuristics=self.heuristics)
             simulation.attack_until_win()
             result = ai_help.count_hits_and_misses(simulation.opponent_masked_board)
             hits.append(result['hits'])
             misses.append(result['misses'])
 
         if self.optimisation_type == 'minimise':
-            return misses
+            return np.average(misses)
         if self.optimisation_type == 'maximise':
-            return np.average(np.divide(hits,misses))
+            return np.average(np.divide(hits, misses + hits))
 
     def optimise(self):
-        pass
+        boxes = []
+        for name in self.heuristic_names:
+            boxes.append(heur.SEARCH_RANGES[name])
+
+        result = bb.search(f=self.play_games,  # given function
+                        box=boxes,  # range of values for each parameter
+                        n=20,  # number of function calls on initial stage (global search)
+                        m=20,  # number of function calls on subsequent stage (local search)
+                        batch=4,  # number of calls that will be evaluated in parallel
+                        resfile='output.csv')  # text file where results will be saved
+
+        # Get top parameter values.
+        return result[0][:-1]
 
     def set_optimisation_type(self, type):
         self.optimisation_type = type
-
-# Function that creates targeting scores using provided heuristics.
-# Each heuristic is provided as a tuple of (function, args) in a list.
-def get_targeting_scores(opp_board, opp_ships, heuristics):
-    scores = np.zeros((len(opp_board), len(opp_board[0])), dtype=float)  # final scores
-    cell_modifiers = np.ones((len(opp_board), len(opp_board[0])), dtype=float)  # modifiers to apply to cell.
-    ship_modifiers = {}  # modifiers to apply to ship.
-    # A dict of coordinates and their valid ship alignments. This is useful as some heuristics will need to have
-    # full alignment data to make decisions.
-    ship_sets = {}
-    # A dict of non-redundant coordinates and valid ship alignments. Useful to avoid weighting pointless positions.
-    reduced_ship_sets = {}
-    # y is the row, x is the column
-    for (y, x), val in np.ndenumerate(opp_board):
-        if val == '':
-            ship_alignments = ai_help.alignments_in(y, x, opp_board, opp_ships)
-            ship_sets[(y, x)] = ship_alignments
-            ai_help.reduce_alignments(y, x, reduced_ship_sets, ship_alignments)
-
-            for ship in ship_alignments:
-                ship_modifiers[ship] = 1
-
-    # Run each heuristic to modify the scores.
-    for heuristic in heuristics:
-        heuristic[0](cell_modifiers, ship_modifiers, ship_sets, opp_board, heuristic[1])
-
-    # Apply resulting weights.
-    for (y, x), val in np.ndenumerate(scores):
-        # Account for non-available coordinates.
-        if (y, x) in reduced_ship_sets:
-            for ship in reduced_ship_sets[(y, x)]:
-                scores[y, x] += ship_modifiers[ship]
-            scores[y, x] *= cell_modifiers[y, x]
-
-    return scores
-
-
-# Applies a heuristic on potential ships that would be adjacent to known ships.
-# Depending on adj_weight this will either prioritise adjacent ships or neglect them.
 
 
 # Extract sunken ship data from an opponent to create an unused copy for training.
@@ -121,3 +109,22 @@ def extract_original_opp_board(finished_board):
             opp_board[y][x] = val[1]
 
     return opp_board
+
+def main():
+    import os
+    os.chdir('..')
+    o = Optimiser('pho', 'housebot-competition')
+    o.load_bot()
+    o.prepare_heuristics(['ship_adjacency'])
+    o.set_optimisation_type('minimise')
+    o.prepare_k_offensive_games(10)
+    result = o.optimise()
+    o.save_heuristics(result)
+    # print('Result:', o.play_games([0.5]))
+    # o.save_heuristics([0.5])
+
+if __name__ == '__main__':
+    main()
+
+
+

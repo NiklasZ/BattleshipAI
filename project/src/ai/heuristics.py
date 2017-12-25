@@ -1,5 +1,10 @@
 import numpy as np
 
+# Applies a heuristic on potential ships that would be adjacent to known ships.
+# Depending on adj_weight this will either prioritise adjacent ships or neglect them.
+SEARCH_RANGES = {
+    'ship_adjacency':[0.,5.]
+}
 
 def ship_adjacency(cell_modifiers, ship_modifiers, ship_sets, board, adj_weight):
     adj_cells = get_cells_adjacent_to_ships(board)

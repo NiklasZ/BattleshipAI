@@ -3,7 +3,6 @@ from random import shuffle
 import numpy as np
 
 import src.ai.ai_helpers as ai_help
-import src.ai.bot_learning as bot_learn
 
 
 class Bot:
@@ -69,7 +68,7 @@ class Bot:
 
     # Look for possible targets based on alignment information.
     def possible_targets(self, opp_board, opp_ships):
-        scores = bot_learn.get_targeting_scores(opp_board, opp_ships, self.heuristics)
+        scores = ai_help.get_targeting_scores(opp_board, opp_ships, self.heuristics)
         # Get all non-zero possible alignments and their indices.
         targets = {(y, x): val for y, row in enumerate(scores) for x, val in enumerate(row)}
         return targets
@@ -207,3 +206,4 @@ def format_ship_deployment(placements):
 
     accepted_format = {"Placement": accepted_format}
     return accepted_format
+

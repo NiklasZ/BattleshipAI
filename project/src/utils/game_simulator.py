@@ -23,7 +23,7 @@ class GameSimulator:
 
     # Have the bot choose an coordinate to attack.
     def attack_opponent(self):
-        game_state = {'Ships': self.ships, 'OppBoard': self.opponent_board, 'MyBoard': self.player_board}
+        game_state = {'Ships': self.ships, 'OppBoard': self.opponent_masked_board, 'MyBoard': self.player_board}
 
         move = self.bot.make_move(game_state)
         coord = ai_help.translate_move_to_coord(move)
@@ -66,7 +66,7 @@ class GameSimulator:
 
 
     def has_won(self):
-        for val in np.nditer(self.opponent_board):
+        for (y,x),val in np.ndenumerate(self.opponent_board):
             if val.isdigit():
                 return False
 
