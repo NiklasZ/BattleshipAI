@@ -1,4 +1,5 @@
-import src.ai.ai_helpers as ai_help
+import src.ai.ship_targeting as ai_help
+import src.ai.board_info
 import src.utils.fileIO as io
 import src.ai.ai as ai
 import src.utils.game_simulator as sim
@@ -58,7 +59,7 @@ class Optimiser:
         for entry in latest_k_entries:
             game_id, game_states = entry
             # Get last known board of the game.
-            opp_board = extract_original_opp_board(game_states[-1]['OppBoard'])
+            opp_board = _extract_original_opp_board(game_states[-1]['OppBoard'])
             self.games.append({'game_id': game_id, 'opp_board': opp_board, 'ships': game_states[-1]['Ships']})
 
     def play_games(self, heuristic_values):
@@ -72,7 +73,7 @@ class Optimiser:
             simulation = sim.GameSimulator(self.bot_name, None, disposable_game['opp_board'], disposable_game['ships'],
                                            heuristics=self.heuristics)
             simulation.attack_until_win()
-            result = ai_help.count_hits_and_misses(simulation.opponent_masked_board)
+            result = src.ai.board_info.count_hits_and_misses(simulation.opponent_masked_board)
             hits.append(result['hits'])
             misses.append(result['misses'])
 
@@ -122,7 +123,7 @@ class Optimiser:
 
 
 # Extract sunken ship data from an opponent to create an unused copy for training.
-def extract_original_opp_board(finished_board):
+def _extract_original_opp_board(finished_board):
     opp_board = copy.deepcopy(finished_board)
     for (y, x), val in np.ndenumerate(opp_board):
         if val in ['M', 'H']:

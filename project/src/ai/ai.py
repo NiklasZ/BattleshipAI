@@ -1,7 +1,8 @@
 import importlib
 import numpy as np
 
-import src.ai.ai_helpers as ai_help
+import src.ai.ship_targeting as ai_help
+import src.ai.board_info as board_info
 import src.utils.fileIO as io
 import src.ai.heuristics as heur
 
@@ -17,7 +18,7 @@ class AI:
         self.opponent_name = game_state['OpponentId']
         self.game_id = game_state['GameId']
         self.heuristic_info = None
-        if ai_help.is_there_land(np.array(game_state['MyBoard'])):
+        if board_info.is_there_land(np.array(game_state['MyBoard'])):
             self.map_type = 'land'
         else:
             self.map_type = 'no land'
@@ -33,7 +34,7 @@ class AI:
         self.bot = getattr(importlib.import_module(location), 'Bot')()
 
         if not self.opponent_profile:
-            self.generate_profile()
+            self._generate_profile()
 
         if heuristic_choices:
             self._load_heuristics(heuristic_choices)
@@ -74,9 +75,9 @@ class AI:
             set_heuristics(heuristics)
 
     # Add the current game (has to have ended) to the bot's opponent profile.
-    def add_game_to_profile(self, game_state, won):
+    def _add_game_to_profile(self, game_state, won):
 
-        performance = self.assess_game_performance(game_state)
+        performance = self._assess_game_performance(game_state)
         self.opponent_profile['games'][self.game_id] = performance['games']
 
         # Ascertain if the game was actually won or not.
@@ -92,7 +93,7 @@ class AI:
         io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
 
     # Measure how well a game went.
-    def assess_game_performance(self, final_state):
+    def _assess_game_performance(self, final_state):
         performance = {}
 
         # If the bot has any performance metrics, get those.
@@ -101,8 +102,8 @@ class AI:
             performance = get_bot_performance(final_state)
 
         # Additionally, get general accuracy/evasion metrics.
-        bot_stats = ai_help.count_hits_and_misses(final_state['MyBoard'])
-        opp_stats = ai_help.count_hits_and_misses(final_state['OppBoard'])
+        bot_stats = board_info.count_hits_and_misses(final_state['MyBoard'])
+        opp_stats = board_info.count_hits_and_misses(final_state['OppBoard'])
 
         accuracy = opp_stats['hits'] / (opp_stats['hits'] + opp_stats['misses'])
         evasion = 1 - bot_stats['hits'] / (opp_stats['hits'] + opp_stats['misses'])
@@ -116,7 +117,7 @@ class AI:
         return performance
 
     # Generates an empty opponent profile.
-    def generate_profile(self):
+    def _generate_profile(self):
         self.opponent_profile = {'bot_name': self.bot.bot_name,
                                  'opponent_name': self.opponent_name,
                                  # Contains mapping of game_id:[interesting statistics about the game]

@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-import src.ai.ai_helpers as ai_help
+import src.ai.ship_targeting as ai_help
 import src.ai.heuristics as heur
 
 
@@ -21,7 +21,7 @@ class TestHeuristicAdjacency(TestCase):
                                  (2, 1), (2, 3),
                                  (3, 2)}
 
-        neighbours = heur.get_cells_adjacent_to_ships(board)
+        neighbours = heur._get_cells_adjacent_to_ships(board)
 
         self.assertEqual(neighbours, neighbours_cells_test)
 

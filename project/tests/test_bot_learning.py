@@ -16,4 +16,4 @@ class TestBoardExtraction(TestCase):
                                ['L', '', '', '1'],
                                ['', '', '', '1']]
 
-        self.assertEqual(original_board_test,learn.extract_original_opp_board(finished_board))
+        self.assertEqual(original_board_test, learn._extract_original_opp_board(finished_board))

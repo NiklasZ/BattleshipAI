@@ -9,6 +9,9 @@ import numpy as np
 
 # Gets all possible alignments on a board. The optional parameter allows
 # removing redundant alignments.
+from src.ai.ship_deployment import can_deploy
+
+
 def possible_alignments(opp_board, opp_ships, reduce=False):
     alignments = np.zeros((len(opp_board), len(opp_board[0])), dtype=int)
     # A dict of coordinates and their valid ship alignments.
@@ -17,10 +20,10 @@ def possible_alignments(opp_board, opp_ships, reduce=False):
     for y in range(0, len(opp_board)):
         for x in range(0, len(opp_board[0])):
             if opp_board[y][x] == '':
-                ship_alignments = alignments_in(y, x, opp_board, opp_ships)
+                ship_alignments = _alignments_in(y, x, opp_board, opp_ships)
 
                 if reduce:
-                    reduce_alignments(y, x, ship_sets, ship_alignments)
+                    _reduce_alignments(y, x, ship_sets, ship_alignments)
                 else:
                     ship_sets[(y, x)] = ship_alignments
 
@@ -34,7 +37,7 @@ def possible_alignments(opp_board, opp_ships, reduce=False):
 # In practical terms this means that there is no point at firing at some cell A on a board because there exists another
 # cell B that when fired at, can eliminate all possibilities of there being a ship in A.
 
-def reduce_alignments(y, x, ship_sets, ship_alignments):
+def _reduce_alignments(y, x, ship_sets, ship_alignments):
     # If is first element, add it and skip checking against itself.
     if len(ship_sets) == 0:
         ship_sets[(y, x)] = ship_alignments
@@ -58,7 +61,7 @@ def reduce_alignments(y, x, ship_sets, ship_alignments):
 
 # Gets number of valid alignments for a position
 # Will return a set of ship deployments each in the form of (y - i, x, ship_length, orientation)
-def alignments_in(y, x, opp_board, opp_ships):
+def _alignments_in(y, x, opp_board, opp_ships):
     valid_alignments = set()
     for ship_length in opp_ships:
         for i in range(0, ship_length):
@@ -73,72 +76,17 @@ def alignments_in(y, x, opp_board, opp_ships):
 
 
 # Returns whether given location can fit given ship onto given board and, if it can, updates the given board with that ships position
-def deploy_ship(i, j, board, length, orientation, ship_num):
-    if orientation == "V":  # If we are trying to place ship vertically
-        if i + length - 1 >= len(board):  # If ship doesn't fit within board boundaries
-            return False  # Ship not deployed
-        for l in range(length):  # For every section of the ship
-            if board[i + l][j] != "":  # If there is something on the board obstructing the ship
-                return False  # Ship not deployed
-        for l in range(length):  # For every section of the ship
-            board[i + l][j] = str(ship_num)  # Place the ship on the board
-    else:  # If we are trying to place ship horizontally
-        if j + length - 1 >= len(board[0]):  # If ship doesn't fit within board boundaries
-            return False  # Ship not deployed
-        for l in range(length):  # For every section of the ship
-            if board[i][j + l] != "":  # If there is something on the board obstructing the ship
-                return False  # Ship not deployed
-        for l in range(length):  # For every section of the ship
-            board[i][j + l] = str(ship_num)  # Place the ship on the board
-    return True  # Ship deployed
 
 
 # Returns a list of the lengths of your opponent's ships that haven't been sunk
-def ships_still_afloat(ships, opp_board):
-    afloat = []
-    ships_removed = []
-    for k in range(len(ships)):  # For every ship
-        afloat.append(ships[k])  # Add it to the list of afloat ships
-        ships_removed.append(False)  # Set its removed from afloat list to false
-    for i in range(len(opp_board)):
-        for j in range(len(opp_board[0])):  # For every grid on the board
-            for k in range(len(ships)):  # For every ship
-                if str(k) in opp_board[i][j] and not ships_removed[
-                    k]:  # If we can see the ship number on our opponent's board and we haven't already removed it from the afloat list
-                    afloat.remove(ships[
-                                      k])  # Remove that ship from the afloat list (we can only see an opponent's ship number when the ship has been sunk)
-                    ships_removed[
-                        k] = True  # Record that we have now removed this ship so we know not to try and remove it again
-    return afloat  # Return the list of ships still afloat
 
 
 # Ascertains if a given ship can be deployed at a given location
 # The optional valid_fields parameter is for when other types of spaces such as hits (H) should be considered acceptable
 # to deploy over.
-def can_deploy(i, j, board, length, orientation, valid_fields=['']):
-    if orientation == "V":  # If we are trying to place ship vertically
-        if i + length - 1 >= len(board):  # If ship doesn't fit within board boundaries
-            return False  # Ship not deployed
-        for l in range(length):  # For every section of the ship
-            if board[i + l][j] not in valid_fields:  # If there is something on the board obstructing the ship
-                return False  # Ship not deployed
-    else:  # If we are trying to place ship horizontally
-        if j + length - 1 >= len(board[0]):  # If ship doesn't fit within board boundaries
-            return False  # Ship not deployed
-        for l in range(length):  # For every section of the ship
-            if board[i][j + l] not in valid_fields:  # If there is something on the board obstructing the ship
-                return False  # Ship not deployed
-    return True  # Ship fits
 
 
 # Removes a specified ship from a board.
-def remove_ship(y, x, board, ship, orientation):
-    if orientation == 'V':
-        for i in range(y, y + ship):
-            board[i][x] = ''
-    else:
-        for j in range(x, x + ship):
-            board[y][j] = ''
 
 
 # For a hit option, calculate the number of possible alignments and return the results + possibilities.
@@ -221,9 +169,9 @@ def adjacent_to_hits(opp_board):
                     i += 1
 
                 if top:
-                    add_to_hits(hits, top, vert_length, 'top')
+                    _add_to_hits(hits, top, vert_length, 'top')
                 if bottom:
-                    add_to_hits(hits, bottom, vert_length, 'bottom')
+                    _add_to_hits(hits, bottom, vert_length, 'bottom')
 
             # Search horizontally
             if not horz_visited[y, x]:
@@ -256,9 +204,9 @@ def adjacent_to_hits(opp_board):
                     j += 1
 
                 if left:
-                    add_to_hits(hits, left, horz_length, 'left')
+                    _add_to_hits(hits, left, horz_length, 'left')
                 if right:
-                    add_to_hits(hits, right, horz_length, 'right')
+                    _add_to_hits(hits, right, horz_length, 'right')
 
     return hits
 
@@ -266,7 +214,7 @@ def adjacent_to_hits(opp_board):
 # Helper method for adding hits. If multiple ship lengths intersect, it will
 # prioritise the larger one. This can happen when multiple ships are adjacent
 # and the AI runs out of options along one length, but has not sunk any ships, instead having hit several.
-def add_to_hits(hits, coord, seq_length, direction):
+def _add_to_hits(hits, coord, seq_length, direction):
     if coord not in hits:
         hits[coord] = {'seq_length': seq_length, 'direction': direction}
     elif seq_length > hits[coord]['seq_length']:
@@ -274,59 +222,21 @@ def add_to_hits(hits, coord, seq_length, direction):
 
 
 # Count the number of hits and misses on a board.
-def count_hits_and_misses(board):
-    hits = 0
-    misses = 0
-    for (y, x), val in np.ndenumerate(board):
-        if 'H' in board[y][x] or 'S' in board[y][x]:
-            hits += 1
-        if board[y][x] == 'M':
-            misses += 1
-
-    return {'hits': hits, 'misses': misses}
 
 
 # Deploys all the ships randomly on a blank board
-def deploy_randomly(game_state):
-    move = []  # Initialise move as an emtpy list
-    orientation = None
-    row = None
-    column = None
-    for i in range(len(game_state["Ships"])):  # For every ship that needs to be deployed
-        deployed = False
-        while not deployed:  # Keep randomly choosing locations until a valid one is chosen
-            row = np.random.randint(0, len(game_state["MyBoard"]) - 1)  # Randomly pick a row
-            column = np.random.randint(0, len(game_state["MyBoard"][0]) - 1)  # Randomly pick a column
-            orientation = np.random.choice(["H", "V"])  # Randomly pick an orientation
-            if deploy_ship(row, column, game_state["MyBoard"], game_state["Ships"][i], orientation,
-                           i):  # If ship can be successfully deployed to that location...
-                deployed = True  # ...then the ship has been deployed
-        move.append({"Row": chr(row + 65), "Column": (column + 1),
-                     "Orientation": orientation})  # Add the valid deployment location to the list of deployment locations in move
-    return {"Placement": move}  # Return the move
 
 
 # Detects if there is land on the board
-def is_there_land(board):
-    for cell in np.nditer(board):
-        if cell == 'L':
-            return True
-    return False
 
 
 # Given a valid coordinate on the board returns it as a correctly formatted move on a battleship grid.
-def translate_coord_to_move(row, column):
-    return {"Row": chr(row + 65), "Column": (column + 1)}
 
 
 # Given a formatted move on a battleship, extract the original array indices.
-def translate_move_to_coord(move):
-    return ord(move['Row']) - 65, move['Column'] - 1
 
 
 # Given a valid coordinate on the board returns it as a correctly formatted ship
-def translate_ship(row, column, orientation):
-    return {"Row": chr(row + 65), "Column": (column + 1), "Orientation": orientation}
 
 # Function that creates targeting scores using provided heuristics.
 # Each heuristic is provided as a tuple of (function, args) in a list.
@@ -342,9 +252,9 @@ def get_targeting_scores(opp_board, opp_ships, heuristics):
     # y is the row, x is the column
     for (y, x), val in np.ndenumerate(opp_board):
         if val == '':
-            ship_alignments = alignments_in(y, x, opp_board, opp_ships)
+            ship_alignments = _alignments_in(y, x, opp_board, opp_ships)
             ship_sets[(y, x)] = ship_alignments
-            reduce_alignments(y, x, reduced_ship_sets, ship_alignments)
+            _reduce_alignments(y, x, reduced_ship_sets, ship_alignments)
 
             for ship in ship_alignments:
                 ship_modifiers[ship] = 1

@@ -4,7 +4,9 @@ from unittest import TestCase
 import numpy as np
 
 import src.ai
-import src.ai.ai_helpers as ai_help
+import src.ai.ship_deployment
+import src.ai.ship_targeting as ai_help
+import src.ai.board_info
 
 
 class TestDeployment(unittest.TestCase):
@@ -14,24 +16,24 @@ class TestDeployment(unittest.TestCase):
         board = [['', '2', '2'],
                  ['', '1', ''],
                  ['', '1', '']]
-        self.assertFalse(ai_help.can_deploy(0, 0, board, 2, 'H'))
-        self.assertFalse(ai_help.can_deploy(0, 0, board, 4, 'V'))
-        self.assertFalse(ai_help.can_deploy(1, 1, board, 1, 'V'))
-        self.assertFalse(ai_help.can_deploy(1, 1, board, 1, 'H'))
-        self.assertFalse(ai_help.can_deploy(2, 2, board, 2, 'V'))
-        self.assertFalse(ai_help.can_deploy(2, 2, board, 2, 'H'))
+        self.assertFalse(src.ai.ship_deployment.can_deploy(0, 0, board, 2, 'H'))
+        self.assertFalse(src.ai.ship_deployment.can_deploy(0, 0, board, 4, 'V'))
+        self.assertFalse(src.ai.ship_deployment.can_deploy(1, 1, board, 1, 'V'))
+        self.assertFalse(src.ai.ship_deployment.can_deploy(1, 1, board, 1, 'H'))
+        self.assertFalse(src.ai.ship_deployment.can_deploy(2, 2, board, 2, 'V'))
+        self.assertFalse(src.ai.ship_deployment.can_deploy(2, 2, board, 2, 'H'))
 
     # Check if it will accept valid deployments
     def test_deployment_accept(self):
         board = [['', '', '', ''],
                  ['', '1', '', ''],
                  ['', '1', '', '']]
-        self.assertTrue(ai_help.can_deploy(0, 0, board, 2, 'H'))
-        self.assertTrue(ai_help.can_deploy(0, 1, board, 2, 'H'))
-        self.assertTrue(ai_help.can_deploy(0, 0, board, 4, 'H'))
-        self.assertTrue(ai_help.can_deploy(0, 0, board, 3, 'V'))
-        self.assertTrue(ai_help.can_deploy(0, 2, board, 3, 'V'))
-        self.assertTrue(ai_help.can_deploy(0, 3, board, 3, 'V'))
+        self.assertTrue(src.ai.ship_deployment.can_deploy(0, 0, board, 2, 'H'))
+        self.assertTrue(src.ai.ship_deployment.can_deploy(0, 1, board, 2, 'H'))
+        self.assertTrue(src.ai.ship_deployment.can_deploy(0, 0, board, 4, 'H'))
+        self.assertTrue(src.ai.ship_deployment.can_deploy(0, 0, board, 3, 'V'))
+        self.assertTrue(src.ai.ship_deployment.can_deploy(0, 2, board, 3, 'V'))
+        self.assertTrue(src.ai.ship_deployment.can_deploy(0, 3, board, 3, 'V'))
 
 
 class TestAlignments(unittest.TestCase):
@@ -43,9 +45,9 @@ class TestAlignments(unittest.TestCase):
                  ['L', '', 'M', '', ''],
                  ['', 'M', '', '', ''],
                  ['', 'M', '', '', '']]
-        self.assertEqual(len(ai_help.alignments_in(0, 0, board, ships)), 3)
-        self.assertEqual(len(ai_help.alignments_in(0, 4, board, ships)), 4)
-        self.assertEqual(len(ai_help.alignments_in(2, 1, board, ships)), 0)
+        self.assertEqual(len(ai_help._alignments_in(0, 0, board, ships)), 3)
+        self.assertEqual(len(ai_help._alignments_in(0, 4, board, ships)), 4)
+        self.assertEqual(len(ai_help._alignments_in(2, 1, board, ships)), 0)
 
     # Check alignments on a whole board.
     def test_whole_board_alignment(self):
@@ -237,7 +239,7 @@ class BoardTranslation(unittest.TestCase):
         test_ship_orientation = 'H'
         test_dict = {'Row': test_y, 'Column': test_x, 'Orientation': test_ship_orientation}
 
-        self.assertEqual(test_dict, ai_help.translate_ship(ship_y, ship_x, ship_orientation))
+        self.assertEqual(test_dict, src.ai.ship_deployment.translate_ship(ship_y, ship_x, ship_orientation))
 
     def test_coord_translation(self):
         y = 0
@@ -247,7 +249,7 @@ class BoardTranslation(unittest.TestCase):
         test_x = 4
         test_dict = {'Row': test_y, 'Column': test_x}
 
-        self.assertEqual(test_dict, ai_help.translate_coord_to_move(y, x))
+        self.assertEqual(test_dict, src.ai.board_info.translate_coord_to_move(y, x))
 
     def test_move_translation(self):
         y = 'E'
@@ -257,7 +259,7 @@ class BoardTranslation(unittest.TestCase):
         test_y = 4
         test_x = 4
 
-        self.assertEqual((test_y, test_x), ai_help.translate_move_to_coord(move_dict))
+        self.assertEqual((test_y, test_x), src.ai.board_info.translate_move_to_coord(move_dict))
 
 
 if __name__ == '__main__':
@@ -278,7 +280,7 @@ class TestTargetingScores(TestCase):
                        [0, 0, 0, 5],
                        [0, 0, 0, 4]]
 
-        scores = src.ai.ai_helpers.get_targeting_scores(board, ships, [])
+        scores = src.ai.ship_targeting.get_targeting_scores(board, ships, [])
         for row, row_t in zip(scores, scores_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)

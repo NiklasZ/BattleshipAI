@@ -523,7 +523,7 @@ class BattleshipsDemoClient(Frame):
                     self.resultText.config(text='Game has ended: ' + move_results['Result'])
                     print("Game won!")
                     recorder.record_turn(move_results['GameState'])
-                    bot.add_game_to_profile(poll_results['GameState'], True)
+                    bot._add_game_to_profile(poll_results['GameState'], True)
                     break
                 else:
                     game_state = move_results['GameState']
@@ -540,7 +540,7 @@ class BattleshipsDemoClient(Frame):
                     self.resultText.config(text='Game has ended: ' + poll_results['Result'])
                     print("Game lost!")
                     recorder.record_turn(poll_results['GameState'])
-                    bot.add_game_to_profile(poll_results['GameState'], False)
+                    bot._add_game_to_profile(poll_results['GameState'], False)
                     break
                 game_state = poll_results['GameState']
             # END OF GAME
