@@ -22,7 +22,7 @@ def _get_cells_adjacent_to_ships(board):
     neighbours = set()
     for (y, x), val in np.ndenumerate(board):
         # If the coordinate is either a hit or sunk ship.
-        if val == 'H' or (len(val) == 2 and val[0] == 'S'):
+        if len(val) == 2 and val[0] == 'S':
             if y - 1 >= 0 and board[y - 1, x] == '':
                 neighbours.add((y - 1, x))
             # Check below

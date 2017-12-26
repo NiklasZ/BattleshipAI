@@ -1,6 +1,5 @@
 import numpy as np
 
-
 # =============================================================================
 # The code below shows a selection of helper functions designed to make the
 # time to understand the environment and to get a game running as short as
@@ -104,31 +103,100 @@ def possible_hit_ships(opp_board, opp_ships, position, hit_option):
             start_idx = position[0] - (ship_length - seq_length) + 1
             final_idx = position[0]
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V',
+                                                       valid_fields=['', 'H']):
                     ship_fits += 1
 
         if hit_option['direction'] == 'bottom':
             start_idx = position[0] - ship_length + 1
             final_idx = position[0] - seq_length
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V',
+                                                       valid_fields=['', 'H']):
                     ship_fits += 1
 
         if hit_option['direction'] == 'left':
             start_idx = position[1] - (ship_length - seq_length) + 1
             final_idx = position[1]
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H',
+                                                       valid_fields=['', 'H']):
                     ship_fits += 1
 
         if hit_option['direction'] == 'right':
             start_idx = position[1] - ship_length + 1
             final_idx = position[1] - seq_length
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H',
+                                                       valid_fields=['', 'H']):
                     ship_fits += 1
 
     return ship_fits
+
+
+def possible_hit_scores(opp_board, opp_ships, position, hit_option, heuristics):
+    # Remove ships that are too short to be possible.
+    seq_length = hit_option['seq_length']
+    cell_modifiers = np.ones((len(opp_board), len(opp_board[0])), dtype=float)  # modifiers to apply to cell.
+    ship_modifiers = {}  # modifiers to apply to ship.
+    # A dict of coordinates and their valid ship alignments. This is useful as some heuristics will need to have
+    # full alignment data to make decisions.
+    ship_set = set()
+    score = 0
+
+    # Based on the sequence's position, ascertain if there is enough room.
+    # This works by trying to deploy a ship in the ranges that include both the sequence and the given position.
+    for ship_length in opp_ships:
+        if hit_option['direction'] == 'top':
+            start_idx = position[0] - (ship_length - seq_length) + 1
+            final_idx = position[0]
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V',
+                                                       valid_fields=['', 'H']):
+                    ship = (idx, position[1], ship_length, 'V')
+                    ship_set.add(ship)
+                    ship_modifiers[ship] = 1
+
+        if hit_option['direction'] == 'bottom':
+            start_idx = position[0] - ship_length + 1
+            final_idx = position[0] - seq_length
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V',
+                                                       valid_fields=['', 'H']):
+                    ship = (idx, position[1], ship_length, 'V')
+                    ship_set.add(ship)
+                    ship_modifiers[ship] = 1
+
+        if hit_option['direction'] == 'left':
+            start_idx = position[1] - (ship_length - seq_length) + 1
+            final_idx = position[1]
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H',
+                                                       valid_fields=['', 'H']):
+                    ship = (position[0], idx, ship_length, 'H')
+                    ship_set.add(ship)
+                    ship_modifiers[ship] = 1
+
+        if hit_option['direction'] == 'right':
+            start_idx = position[1] - ship_length + 1
+            final_idx = position[1] - seq_length
+            for idx in range(start_idx, final_idx + 1):
+                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H',
+                                                       valid_fields=['', 'H']):
+                    ship = (position[0], idx, ship_length, 'H')
+                    ship_set.add(ship)
+                    ship_modifiers[ship] = 1
+
+    # Run each heuristic to modify the scores.
+    for heuristic in heuristics:
+        heuristic[0](cell_modifiers, ship_modifiers, {position: ship_set}, opp_board, heuristic[1])
+
+    # Apply heuristics to position
+    for ship in ship_set:
+        score += ship_modifiers[ship]
+    score *= cell_modifiers[position]
+
+    return score
 
 
 # Find locations adjacent to possible hits and records their lengths.

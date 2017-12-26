@@ -5,6 +5,7 @@ import src.ai.ship_deployment as ship_deploy
 from random import choice
 import numpy as np
 
+
 class Bot:
 
     def __init__(self):
@@ -29,10 +30,10 @@ class Bot:
             max_length = moves[max_len_pos]['seq_length']
             length_choices = {k: v for k, v in moves.items() if v['seq_length'] == max_length}
 
-            # Then select by highest number of possible ship alignments.
-            max_fit_pos = max(length_choices, key=lambda x: length_choices[x]['possible_alignments'])
-            max_fit = length_choices[max_fit_pos]['possible_alignments']
-            choices = [move for move in length_choices if length_choices[move]['possible_alignments'] == max_fit]
+            # Then select by highest heuristic score.
+            max_fit_pos = max(length_choices, key=lambda x: length_choices[x]['score'])
+            max_fit = length_choices[max_fit_pos]['score']
+            choices = [move for move in length_choices if length_choices[move]['score'] == max_fit]
             y, x = choice(choices)
 
         # If not, search for possible targets from the grid.
@@ -61,8 +62,9 @@ class Bot:
     def _possible_hits(self, opp_board, opp_ships):
         hit_options = ship_target.adjacent_to_hits(opp_board)
         for hit in hit_options:
-            possible_ship_count = ship_target.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
-            hit_options[hit]['possible_alignments'] = possible_ship_count
+            possible_ship_count = ship_target.possible_hit_scores(opp_board, opp_ships, hit, hit_options[hit],
+                                                                  self.heuristics)
+            hit_options[hit]['score'] = possible_ship_count
         return hit_options
 
     # Look for possible targets based on alignment information.
@@ -71,4 +73,3 @@ class Bot:
         # Get all non-zero possible alignments and their indices.
         targets = {(y, x): val for y, row in enumerate(scores) for x, val in enumerate(row)}
         return targets
-
