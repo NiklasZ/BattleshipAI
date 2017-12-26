@@ -1,5 +1,4 @@
-import src.ai.ship_targeting as ai_help
-import src.ai.board_info
+import src.ai.board_info as board_info
 import src.utils.fileIO as io
 import src.ai.ai as ai
 import src.utils.game_simulator as sim
@@ -11,6 +10,7 @@ from noisyopt import minimizeSPSA
 import copy
 import importlib
 import numpy as np
+import time
 
 
 class Optimiser:
@@ -23,6 +23,7 @@ class Optimiser:
         self.heuristics = []
         self.heuristic_names = []
         self.optimisation_type = None
+        self.replay_games = 1  # Number of times to replay a game. This is to better sample bot's random decisions.
         self.map_type = 'generic'
 
     def load_bot(self):
@@ -69,19 +70,21 @@ class Optimiser:
         misses = []
         hits = []
         for game in self.games:
-            disposable_game = copy.deepcopy(game)
-            simulation = sim.GameSimulator(self.bot_name, None, disposable_game['opp_board'], disposable_game['ships'],
-                                           heuristics=self.heuristics)
-            simulation.attack_until_win()
-            result = src.ai.board_info.count_hits_and_misses(simulation.opponent_masked_board)
-            hits.append(result['hits'])
-            misses.append(result['misses'])
+            for i in range(self.replay_games):
+                disposable_game = copy.deepcopy(game)
+                simulation = sim.GameSimulator(self.bot_name, None, disposable_game['opp_board'],
+                                               disposable_game['ships'],
+                                               heuristics=self.heuristics)
+                simulation.attack_until_win()
+                result = board_info.count_hits_and_misses(simulation.opponent_masked_board)
+                hits.append(result['hits'])
+                misses.append(result['misses'])
 
         if self.optimisation_type == 'minimise':
-            #print(heuristic_values,np.sum(misses))
-            return np.sum(misses)
+            # print(heuristic_values,np.sum(misses))
+            return np.average(misses)
         if self.optimisation_type == 'maximise':
-            return np.sum(np.divide(hits, misses + hits))
+            return np.average(np.divide(hits, misses + hits))
 
     def optimise(self):
         boxes = []
@@ -89,11 +92,12 @@ class Optimiser:
             boxes.append(heur.SEARCH_RANGES[name])
 
         result = bb.search(f=self.play_games,  # given function
-                        box=boxes,  # range of values for each parameter
-                        n=20,  # number of function calls on initial stage (global search)
-                        m=5,  # number of function calls on subsequent stage (local search)
-                        batch=4,  # number of calls that will be evaluated in parallel
-                        resfile='output.csv')  # text file where results will be saved
+                           box=boxes,  # range of values for each parameter
+                           n=10,  # number of function calls on initial stage (global search)
+                           m=5,  # number of function calls on subsequent stage (local search)
+                           batch=4,  # number of calls that will be evaluated in parallel
+                           resfile='output.csv')  # text file where results will be saved
+
 
         # Get top parameter values.
         return result[0]
@@ -103,7 +107,7 @@ class Optimiser:
         for name in self.heuristic_names:
             boxes.append(heur.SEARCH_RANGES[name])
 
-        result = minimizeCompass(self.play_games,x0=[4],bounds=boxes,errorcontrol=True,paired=False,disp=True)
+        result = minimizeCompass(self.play_games, x0=[4], bounds=boxes, errorcontrol=True, paired=False, disp=True)
         print(result)
 
         return result['x']
@@ -113,13 +117,16 @@ class Optimiser:
         for name in self.heuristic_names:
             boxes.append(heur.SEARCH_RANGES[name])
 
-        result = minimizeSPSA(self.play_games,x0=[1],bounds=boxes,paired=False,disp=True)
+        result = minimizeSPSA(self.play_games, x0=[1], bounds=boxes, paired=False, disp=True)
         print(result)
 
         return result['x']
 
     def set_optimisation_type(self, type):
         self.optimisation_type = type
+
+    def set_replay_count(self, amount):
+        self.replay_games = amount
 
 
 # Extract sunken ship data from an opponent to create an unused copy for training.
@@ -134,24 +141,29 @@ def _extract_original_opp_board(finished_board):
 
     return opp_board
 
+
 def main():
     import os
     os.chdir('..')
-    o = Optimiser('pho', 'housebot-competition')
-    o.load_bot()
-    o.prepare_heuristics(['ship_adjacency'])
-    o.set_optimisation_type('minimise')
-    o.prepare_k_offensive_games(200)
-    #o.play_games([0.5])
-    result = o.optimise()
-    np.set_printoptions(suppress=True)
-    print(result)
-    #result = o.optimise_alt_2()
-    o.save_heuristics(result[:-1])
-    # o.save_heuristics([0.5])
+
+    start = time.time()
+
+    for i in range(10):
+        o = Optimiser('pho', 'housebot-competition')
+        o.load_bot()
+        o.prepare_heuristics(['ship_adjacency'])
+        o.set_optimisation_type('minimise')
+        o.prepare_k_offensive_games(200)
+        o.set_replay_count(3)
+        # o.play_games([0.5])
+        result = o.optimise()
+        np.set_printoptions(suppress=True)
+        print(result)
+        # result = o.optimise_alt_2()
+        o.save_heuristics(result[:-1])
+        # o.save_heuristics([0.5])
+
+    print('Time taken:', '{:10.3f}'.format(time.time() - start) + 's')
 
 if __name__ == '__main__':
     main()
-
-
-

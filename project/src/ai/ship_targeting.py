@@ -9,7 +9,7 @@ import numpy as np
 
 # Gets all possible alignments on a board. The optional parameter allows
 # removing redundant alignments.
-from src.ai.ship_deployment import can_deploy
+import src.ai.ship_deployment as ship_deploy
 
 
 def possible_alignments(opp_board, opp_ships, reduce=False):
@@ -66,10 +66,10 @@ def _alignments_in(y, x, opp_board, opp_ships):
     for ship_length in opp_ships:
         for i in range(0, ship_length):
             # Vertical alignment attempts
-            if y - i >= 0 and can_deploy(y - i, x, opp_board, ship_length, "V"):
+            if y - i >= 0 and ship_deploy.can_deploy(y - i, x, opp_board, ship_length, "V"):
                 valid_alignments.add((y - i, x, ship_length, 'V'))
             # Horizontal alignment attempts
-            if x - i >= 0 and can_deploy(y, x - i, opp_board, ship_length, "H"):
+            if x - i >= 0 and ship_deploy.can_deploy(y, x - i, opp_board, ship_length, "H"):
                 valid_alignments.add((y, x - i, ship_length, 'H'))
 
     return valid_alignments
@@ -104,28 +104,28 @@ def possible_hit_ships(opp_board, opp_ships, position, hit_option):
             start_idx = position[0] - (ship_length - seq_length) + 1
             final_idx = position[0]
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
                     ship_fits += 1
 
         if hit_option['direction'] == 'bottom':
             start_idx = position[0] - ship_length + 1
             final_idx = position[0] - seq_length
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(idx, position[1], opp_board, ship_length, 'V', valid_fields=['', 'H']):
                     ship_fits += 1
 
         if hit_option['direction'] == 'left':
             start_idx = position[1] - (ship_length - seq_length) + 1
             final_idx = position[1]
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
                     ship_fits += 1
 
         if hit_option['direction'] == 'right':
             start_idx = position[1] - ship_length + 1
             final_idx = position[1] - seq_length
             for idx in range(start_idx, final_idx + 1):
-                if idx >= 0 and can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
+                if idx >= 0 and ship_deploy.can_deploy(position[0], idx, opp_board, ship_length, 'H', valid_fields=['', 'H']):
                     ship_fits += 1
 
     return ship_fits

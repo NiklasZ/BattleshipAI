@@ -1,11 +1,9 @@
-from random import choice
-from random import shuffle
-import numpy as np
-
 import src.ai.ship_targeting as ship_target
-import src.ai.board_info
+import src.ai.board_info as board_info
 import src.ai.ship_deployment as ship_deploy
 
+from random import choice
+import numpy as np
 
 class Bot:
 
@@ -17,7 +15,7 @@ class Bot:
         self.heuristics = heuristics
 
     def make_move(self, game_state):
-        opp_ships = np.array(src.ai.board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
+        opp_ships = np.array(board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
         # If there are hits, try nearby targets.
@@ -43,7 +41,7 @@ class Bot:
             highest = max(moves, key=lambda x: moves[x])
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
-        return src.ai.board_info.translate_coord_to_move(y, x)
+        return board_info.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
@@ -53,7 +51,7 @@ class Bot:
 
         # In case it is impossible to place the ships in a non-adjacent way.
         if result is None:
-            return src.ai.ship_deployment.deploy_randomly(ships, player_board)
+            return ship_deploy.deploy_randomly(ships, player_board)
 
         print("Found possible ship placement after", result[-1]['attempts'], 'attempts')
 

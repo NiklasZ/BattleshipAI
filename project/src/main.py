@@ -521,9 +521,12 @@ class BattleshipsDemoClient(Frame):
                     self.resultText.config(text="Invalid Move")
                 elif move_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + move_results['Result'])
+                    if 'GameState' not in move_results:
+                        print('Connection lost?')
+                        print(move_results)
                     print("Game won!")
                     recorder.record_turn(move_results['GameState'])
-                    bot._add_game_to_profile(poll_results['GameState'], True)
+                    bot._add_game_to_profile(move_results['GameState'], True)
                     break
                 else:
                     game_state = move_results['GameState']

@@ -1,10 +1,10 @@
-from random import choice
-import numpy as np  # Base N-dimensional array package
-import src.ai.ship_targeting as ai_help
-import src.ai.board_info
-import src.ai.ship_deployment
-from src.ai.ship_deployment import randomly_space_ships, format_ship_deployment
 
+import src.ai.ship_targeting as ship_target
+import src.ai.board_info as board_info
+import src.ai.ship_deployment as ship_deploy
+
+from random import choice
+import numpy as np
 
 class Bot:
 
@@ -12,7 +12,7 @@ class Bot:
         self.bot_name = 'Gazpacho'
 
     def make_move(self, game_state):
-        opp_ships = np.array(src.ai.board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
+        opp_ships = np.array(board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
         # If there are hits, try nearby targets.
@@ -39,35 +39,35 @@ class Bot:
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
 
-        return src.ai.board_info.translate_coord_to_move(y, x)
+        return board_info.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
         ships = game_state['Ships']
         player_board = game_state['MyBoard']
-        result = randomly_space_ships(player_board, ships)
+        result = ship_deploy.randomly_space_ships(player_board, ships)
 
         # In case it is impossible to place the ships in a non-adjacent way.
         if result is None:
-            return src.ai.ship_deployment.deploy_randomly(ships,player_board)
+            return ship_deploy.deploy_randomly(ships,player_board)
 
         print("Found possible ship placement after", result[-1]['attempts'], 'attempts')
 
-        return format_ship_deployment(result)
+        return ship_deploy.format_ship_deployment(result)
 
 
 # Get possible hits given the opponent's board and remaining ships.
 def _possible_hits(opp_board, opp_ships):
-    hit_options = ai_help.adjacent_to_hits(opp_board)
+    hit_options = ship_target.adjacent_to_hits(opp_board)
     for hit in hit_options:
-        possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
+        possible_ship_count = ship_target.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
         hit_options[hit]['possible_alignments'] = possible_ship_count
     return hit_options
 
 
 # Look for possible targets based on alignment information.
 def _possible_targets(opp_board, opp_ships):
-    alignments = ai_help.possible_alignments(opp_board, opp_ships, reduce=True)
+    alignments = ship_target.possible_alignments(opp_board, opp_ships, reduce=True)
     # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets

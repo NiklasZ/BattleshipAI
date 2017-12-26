@@ -1,7 +1,6 @@
 import importlib
 import numpy as np
 
-import src.ai.ship_targeting as ai_help
 import src.ai.board_info as board_info
 import src.utils.fileIO as io
 import src.ai.heuristics as heur

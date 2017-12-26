@@ -1,8 +1,6 @@
 from random import shuffle
-
 import numpy as np
 
-import src.ai
 
 def randomly_space_ships(player_board, ships):
     available_coords = []
@@ -132,7 +130,7 @@ def deploy_randomly(ships, board):
             row = np.random.randint(0, len(board) - 1)  # Randomly pick a row
             column = np.random.randint(0, len(board[0]) - 1)  # Randomly pick a column
             orientation = np.random.choice(["H", "V"])  # Randomly pick an orientation
-            if _deploy_ship_via_coords(row, column, board, ships[i], orientation,
+            if deploy_ship(row, column, board, ships[i], orientation,
                                        i):  # If ship can be successfully deployed to that location...
                 deployed = True  # ...then the ship has been deployed
         move.append({"Row": chr(row + 65), "Column": (column + 1),

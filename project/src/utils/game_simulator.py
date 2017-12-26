@@ -1,11 +1,10 @@
 # Plays moves with bots
 import src.ai.ai as ai
-import src.ai.ship_targeting as ai_help
+import src.ai.board_info as board_info
+
 import importlib
 import numpy as np
 import copy
-
-import src.ai.board_info
 
 
 class GameSimulator:
@@ -28,7 +27,7 @@ class GameSimulator:
         game_state = {'Ships': self.ships, 'OppBoard': self.opponent_masked_board, 'MyBoard': self.player_board}
 
         move = self.bot.make_move(game_state)
-        coord = src.ai.board_info.translate_move_to_coord(move)
+        coord = board_info.translate_move_to_coord(move)
         self.shoot_at_opponent(coord)
 
     # Modify the board based on where the shot hit.
@@ -66,9 +65,8 @@ class GameSimulator:
         while not self.has_won():
             self.attack_opponent()
 
-
     def has_won(self):
-        for (y,x),val in np.ndenumerate(self.opponent_board):
+        for (y, x), val in np.ndenumerate(self.opponent_board):
             if val.isdigit():
                 return False
 

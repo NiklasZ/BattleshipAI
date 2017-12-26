@@ -1,14 +1,13 @@
-from random import choice
-import numpy as np  # Base N-dimensional array package
-import src.ai.ship_targeting as ai_help
-
-
 # The Bouillabaisse bot is the the 1st completed bot.
 # It uses mostly deterministic methods to choose targets.
 # Simultaneously its ship placement is completely random.
-import src.ai.board_info
-import src.ai.ship_deployment
 
+import src.ai.ship_targeting as ai_help
+import src.ai.board_info as board_info
+import src.ai.ship_deployment as ship_deploy
+
+from random import choice
+import numpy as np
 
 class Bot:
 
@@ -16,7 +15,7 @@ class Bot:
         self.bot_name = 'Bouillabaisse'
 
     def make_move(self, game_state):
-        opp_ships = np.array(src.ai.board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
+        opp_ships = np.array(board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
         # If there are hits, try nearby targets.
@@ -44,15 +43,15 @@ class Bot:
             y, x = choice(choices)
 
         # print("Firing at:", ai_help.translate_coord_to_move(y, x))
-        return src.ai.board_info.translate_coord_to_move(y, x)
+        return board_info.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
-        return src.ai.ship_deployment.deploy_randomly(game_state['Ships'],game_state['MyBoard'])
+        return ship_deploy.deploy_randomly(game_state['Ships'],game_state['MyBoard'])
 
 
 # Get possible hits given the opponent's board and remaining ships.
-def _possible_hits(self, opp_board, opp_ships):
+def _possible_hits(opp_board, opp_ships):
     hit_options = ai_help.adjacent_to_hits(opp_board)
     for hit in hit_options:
         possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
@@ -61,7 +60,7 @@ def _possible_hits(self, opp_board, opp_ships):
 
 
 # Look for possible targets based on alignment information.
-def _possible_targets(self, opp_board, opp_ships):
+def _possible_targets(opp_board, opp_ships):
     alignments = ai_help.possible_alignments(opp_board, opp_ships)
     # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
