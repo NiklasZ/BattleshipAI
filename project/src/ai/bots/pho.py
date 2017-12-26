@@ -41,7 +41,6 @@ class Bot:
             highest = max(moves, key=lambda x: moves[x])
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
-
         return ai_help.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.
@@ -69,6 +68,8 @@ class Bot:
     # Look for possible targets based on alignment information.
     def possible_targets(self, opp_board, opp_ships):
         scores = ai_help.get_targeting_scores(opp_board, opp_ships, self.heuristics)
+        #np.set_printoptions(precision=2)
+        #print(scores,'\n')
         # Get all non-zero possible alignments and their indices.
         targets = {(y, x): val for y, row in enumerate(scores) for x, val in enumerate(row)}
         return targets

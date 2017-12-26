@@ -5,6 +5,8 @@ import src.utils.game_simulator as sim
 import src.ai.heuristics as heur
 import lib.blackbox as bb
 
+from noisyopt import minimizeCompass
+from noisyopt import minimizeSPSA
 import copy
 import importlib
 import numpy as np
@@ -60,14 +62,14 @@ class Optimiser:
             self.games.append({'game_id': game_id, 'opp_board': opp_board, 'ships': game_states[-1]['Ships']})
 
     def play_games(self, heuristic_values):
-
         for heuristic, val in zip(self.heuristics, heuristic_values):
             heuristic.append(val)
 
         misses = []
         hits = []
         for game in self.games:
-            simulation = sim.GameSimulator(self.bot_name, None, game['opp_board'], game['ships'],
+            disposable_game = copy.deepcopy(game)
+            simulation = sim.GameSimulator(self.bot_name, None, disposable_game['opp_board'], disposable_game['ships'],
                                            heuristics=self.heuristics)
             simulation.attack_until_win()
             result = ai_help.count_hits_and_misses(simulation.opponent_masked_board)
@@ -75,9 +77,10 @@ class Optimiser:
             misses.append(result['misses'])
 
         if self.optimisation_type == 'minimise':
-            return np.average(misses)
+            #print(heuristic_values,np.sum(misses))
+            return np.sum(misses)
         if self.optimisation_type == 'maximise':
-            return np.average(np.divide(hits, misses + hits))
+            return np.sum(np.divide(hits, misses + hits))
 
     def optimise(self):
         boxes = []
@@ -87,12 +90,32 @@ class Optimiser:
         result = bb.search(f=self.play_games,  # given function
                         box=boxes,  # range of values for each parameter
                         n=20,  # number of function calls on initial stage (global search)
-                        m=20,  # number of function calls on subsequent stage (local search)
+                        m=5,  # number of function calls on subsequent stage (local search)
                         batch=4,  # number of calls that will be evaluated in parallel
                         resfile='output.csv')  # text file where results will be saved
 
         # Get top parameter values.
-        return result[0][:-1]
+        return result[0]
+
+    def optimise_alt(self):
+        boxes = []
+        for name in self.heuristic_names:
+            boxes.append(heur.SEARCH_RANGES[name])
+
+        result = minimizeCompass(self.play_games,x0=[4],bounds=boxes,errorcontrol=True,paired=False,disp=True)
+        print(result)
+
+        return result['x']
+
+    def optimise_alt_2(self):
+        boxes = []
+        for name in self.heuristic_names:
+            boxes.append(heur.SEARCH_RANGES[name])
+
+        result = minimizeSPSA(self.play_games,x0=[1],bounds=boxes,paired=False,disp=True)
+        print(result)
+
+        return result['x']
 
     def set_optimisation_type(self, type):
         self.optimisation_type = type
@@ -117,10 +140,13 @@ def main():
     o.load_bot()
     o.prepare_heuristics(['ship_adjacency'])
     o.set_optimisation_type('minimise')
-    o.prepare_k_offensive_games(10)
+    o.prepare_k_offensive_games(200)
+    #o.play_games([0.5])
     result = o.optimise()
-    o.save_heuristics(result)
-    # print('Result:', o.play_games([0.5]))
+    np.set_printoptions(suppress=True)
+    print(result)
+    #result = o.optimise_alt_2()
+    o.save_heuristics(result[:-1])
     # o.save_heuristics([0.5])
 
 if __name__ == '__main__':

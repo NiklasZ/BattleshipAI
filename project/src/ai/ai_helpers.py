@@ -264,13 +264,12 @@ def adjacent_to_hits(opp_board):
 
 
 # Helper method for adding hits. If multiple ship lengths intersect, it will
-# prioritise the larger one. Normally this should never happen if the AI greedily
-# hunts down the longest found ship before bothering with another one.
+# prioritise the larger one. This can happen when multiple ships are adjacent
+# and the AI runs out of options along one length, but has not sunk any ships, instead having hit several.
 def add_to_hits(hits, coord, seq_length, direction):
     if coord not in hits:
         hits[coord] = {'seq_length': seq_length, 'direction': direction}
     elif seq_length > hits[coord]['seq_length']:
-        print("Why is this executing?!")
         hits[coord] = {'seq_length': seq_length, 'direction': direction}
 
 
