@@ -1,6 +1,6 @@
 from unittest import TestCase
 import src.utils.game_simulator as sim
-
+import src.ai.ai as ai
 import numpy as np
 
 
@@ -128,5 +128,5 @@ class TestGameSimulator(TestCase):
         self.assertTrue(np.array_equal(masked, masked_test))
 
 
-def init_simulator(player_board, opp_board, ships, bot_name='gazpacho'):
-    return sim.GameSimulator(bot_name, player_board, opp_board, ships)
+def init_simulator(player_board, opp_board, ships, bot_location=ai.PLUGIN_PATH+'.gazpacho'):
+    return sim.GameSimulator(bot_location, player_board, opp_board, ships)

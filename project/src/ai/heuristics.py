@@ -1,13 +1,28 @@
 import numpy as np
 
-# Applies a heuristic on potential ships that would be adjacent to known ships.
-# Depending on adj_weight this will either prioritise adjacent ships or neglect them.
+"""
+This file holds heuristics and their sub-functions. A heuristic generally has a fixed form, taking in
+cell_modifiers, ship_modifiers, ship_sets, board and some weight to optimise.
+"""
+
+# Search boxes that are considered for optimising the heuristic. It is not advisable to include 0 in this as it can
+# result in a score being multiplied with 0 and a target never being fired at.
 SEARCH_RANGES = {
     'ship_adjacency': [0.05, 5.]
 }
 
 
 def ship_adjacency(cell_modifiers, ship_modifiers, ship_sets, board, adj_weight):
+    """
+    Calculates which possible deployable ships are adjacent to known ships. It then multiplies each of these ships'
+    score with a weight.
+    :param cell_modifiers: a grid of weights to modify
+    :param ship_modifiers: a list of possible ships, each with a weight to modify.
+    :param ship_sets: the possible ships, mapped by coordinate in which they appear.
+    :param board: the board of ships whose neighbourhood should be detected.
+    :param adj_weight: a multiplicative weight for an optimisation algorithm to adjust.
+    :return:
+    """
     adj_cells = _get_cells_adjacent_to_ships(board)
     affected_ships = set()
     for cell in adj_cells:
@@ -20,6 +35,11 @@ def ship_adjacency(cell_modifiers, ship_modifiers, ship_sets, board, adj_weight)
 
 
 def _get_cells_adjacent_to_ships(board):
+    """
+    Obtains all empty cells next to sunken ships.
+    :param board: the board of ships.
+    :return: a set of coordinates, each being a neighbour.
+    """
     neighbours = set()
     for (y, x), val in np.ndenumerate(board):
         # If the coordinate is either a hit or sunk ship.
