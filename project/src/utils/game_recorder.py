@@ -1,6 +1,7 @@
 import src.utils.fileIO as io
 import datetime
 
+MAX_GAMES_LOGGED_PER_OPPONENT = 200
 
 # Class that exists to log games the bots partake in.
 class GameRecorder:
@@ -35,6 +36,8 @@ class GameRecorder:
     def record_end(self):
         self.log.append('\n\n--GAME END--')
         self.game_history[self.game_id] = self.game_states
+        if len(self.game_history) > MAX_GAMES_LOGGED_PER_OPPONENT:
+            self.game_history = {k:self.game_history[k] for k in sorted(self.game_history, reverse=True)[:MAX_GAMES_LOGGED_PER_OPPONENT]}
         io.save_game_log(self.bot_name, self.opponent_name, self.game_id, ''.join(self.log), self.game_history)
 
     # Converts board to somewhat more readable string.

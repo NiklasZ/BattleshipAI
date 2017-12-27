@@ -4,10 +4,12 @@ import numpy as np
 import src.ai.board_info as board_info
 import src.utils.fileIO as io
 import src.ai.heuristics as heur
+import src.ai.bot_learning as bot_learn
 
-# TODO make this dynamic rather than fixed.
-PLUGIN_PATH = 'src.ai.bots' # this is lazy but writing it dynamically is too much of a pain right now.
+PLUGIN_PATH = 'src.ai.bots'  # this is lazy but writing it dynamically is too much of a pain right now.
 TRAIN_INTERVAL = 50
+TRAINING_MAP_RATE = 0.8
+
 
 class AI:
 
@@ -17,6 +19,7 @@ class AI:
         self.opponent_name = game_state['OpponentId']
         self.game_id = game_state['GameId']
         self.heuristic_info = None
+        self.bot_location = None
         if board_info.is_there_land(np.array(game_state['MyBoard'])):
             self.map_type = 'land'
         else:
@@ -28,9 +31,9 @@ class AI:
         self.opponent_profile = io.load_profile(name, self.opponent_name)
         self.display_play_stats()
 
-        location = PLUGIN_PATH + '.' + name
+        self.bot_location = PLUGIN_PATH + '.' + name
         # Gets the class Bot and creates an instance of it.
-        self.bot = getattr(importlib.import_module(location), 'Bot')()
+        self.bot = getattr(importlib.import_module(self.bot_location), 'Bot')()
 
         if not self.opponent_profile:
             self._generate_profile()
@@ -47,7 +50,7 @@ class AI:
 
     # Load the selected heuristics of a bot.
     def _load_heuristics(self, heuristic_names):
-        set_heuristics = getattr(self.bot, "set_heuristics",None)
+        set_heuristics = getattr(self.bot, "set_heuristics", None)
         # Check if the bot has a heuristics setting function.
         if callable(set_heuristics):
             heuristics = []
@@ -55,7 +58,7 @@ class AI:
             # For each heuristic, load the respective function and weight.
             for name in heuristic_names:
 
-                #Check if a there already is a heuristic value for this name.
+                # Check if a there already is a heuristic value for this name.
                 if name not in self.opponent_profile['heuristics']:
                     continue
 
@@ -63,18 +66,83 @@ class AI:
                 # Try to load the heuristic relevant to the map type.
                 if self.map_type in self.opponent_profile['heuristics'][name]:
                     heuristic_val = self.opponent_profile['heuristics'][name][self.map_type]
+                    heur_type = self.map_type
                 # Load a generic heuristic
                 else:
                     heuristic_val = self.opponent_profile['heuristics'][name]['generic']
+                    heur_type = 'generic'
 
                 self.heuristic_info.append((name, heuristic_val))
-                print('Loading heuristic:','\''+name+'\'', 'of value', heuristic_val)
+                print('Loading a', heur_type, 'heuristic:', '\'' + name + '\'', 'of value', heuristic_val)
                 heuristics.append((heuristic_func, heuristic_val))
             # Set the heuristics for the bot.
             set_heuristics(heuristics)
 
+    def finish_game(self, train_bot=False):
+        # If we allow training, there is enough game and we are at a training interval.
+        if train_bot and \
+                len(self.opponent_profile['games']) % TRAIN_INTERVAL == 0 \
+                and len(self.opponent_profile['games']) >= bot_learn.GAME_COUNT:
+            self._train_bot()
+
+    def _train_bot(self):
+        o = bot_learn.Optimiser(self.bot.bot_name, self.opponent_name, self.bot_location)
+        o.prepare_heuristics([h[0] for h in self.heuristic_info])
+        o.set_optimisation_type('minimise')
+        map_type, games = self._select_training_type()
+        o.prepare_offensive_games(games)
+        o.set_replay_count(bot_learn.REPLAYS)
+        result = o.optimise()
+        self._save_heuristics(result[:-1], map_type)
+
+    # Based on the distribution of land and no-land games in the training data, choose a specific weighted variant.
+    def _select_training_type(self):
+
+        game_dict = self.opponent_profile['games']
+        games = [g for g in sorted(game_dict, reverse=True)[:bot_learn.GAME_COUNT]]
+
+        for h in self.heuristic_info:
+            name = h[0]
+            # If any heuristic does not have a generic weighting yet.
+            if name not in self.opponent_profile['heuristics'] or \
+                    'generic' not in self.opponent_profile['heuristics'][name]:
+                return 'generic', games
+
+        no_land_games = []
+        land_games = []
+
+        for g in games:
+            if game_dict[g]['map_type'] == 'land':
+                land_games.append(g)
+            else:
+                no_land_games.append(g)
+
+        # If there are not enough land or no-land maps to dominate at least the map rate, still choose generic.
+        if float(max(len(land_games), len(no_land_games))) / bot_learn.GAME_COUNT < TRAINING_MAP_RATE:
+            return 'generic', games
+
+        if len(land_games) > len(no_land_games):
+            return 'land', land_games
+        else:
+            return 'no-land', no_land_games
+
+    def _save_heuristics(self, values, map_type):
+        for h, val in zip(self.heuristic_info, values):
+            name = h[0]
+            if name not in self.opponent_profile['heuristics']:
+                self.opponent_profile['heuristics'][name] = {}
+
+            if map_type in self.opponent_profile['heuristics'][name]:
+                print('Replacing',map_type,'heuristic', '\'' + name + '\'', 'of value',
+                      self.opponent_profile['heuristics'][name][map_type], 'with:', val)
+            else:
+                print('Setting',map_type,'heuristic', '\'' + name + '\'','with:', val)
+            self.opponent_profile['heuristics'][name][map_type] = val
+
+        io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
+
     # Add the current game (has to have ended) to the bot's opponent profile.
-    def _add_game_to_profile(self, game_state, won):
+    def add_game_to_profile(self, game_state, won):
 
         performance = self._assess_game_performance(game_state)
         self.opponent_profile['games'][self.game_id] = performance['games']
@@ -87,7 +155,7 @@ class AI:
 
         # Add list of heuristics and values used to game.
         if hasattr(self.bot, "set_heuristics"):
-            self.opponent_profile['games'][self.game_id].update({'heuristics':self.heuristic_info})
+            self.opponent_profile['games'][self.game_id].update({'heuristics': self.heuristic_info})
 
         io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
 

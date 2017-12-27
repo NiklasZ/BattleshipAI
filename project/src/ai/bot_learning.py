@@ -1,35 +1,31 @@
 import src.ai.board_info as board_info
 import src.utils.fileIO as io
-import src.ai.ai as ai
 import src.utils.game_simulator as sim
 import src.ai.heuristics as heur
 import lib.blackbox as bb
 
-from noisyopt import minimizeCompass
-from noisyopt import minimizeSPSA
 import copy
-import importlib
 import numpy as np
 import time
 
+BB_GLOBAL_CALLS = 10 # Number of global search calls the black box optimisation makes.
+BB_LOCAL_CALLS = 5 # Number of local search calls the black box optimisation makes.
+GAME_COUNT = 100 # Default number of games the optimiser uses.
+REPLAYS = 5 # Default number ot times each game is played.
+PARALLEL_CALLS = 4 # Default number of threads that will investigate different parameters.
 
 class Optimiser:
-    def __init__(self, bot_name, opponent_name):
+    def __init__(self, bot_name, opponent_name, bot_location):
         self.bot_name = bot_name
         self.opponent_name = opponent_name
         self.opponent_profile = io.load_profile(bot_name, self.opponent_name)
-        self.bot = None
+        self.bot_location = bot_location
         self.games = None
         self.heuristics = []
         self.heuristic_names = []
         self.optimisation_type = None
-        self.replay_games = 1  # Number of times to replay a game. This is to better sample bot's random decisions.
         self.map_type = 'generic'
-
-    def load_bot(self):
-        location = ai.PLUGIN_PATH + '.' + self.bot_name
-        # Gets the class Bot and creates an instance of it.
-        self.bot = getattr(importlib.import_module(location), 'Bot')()
+        self.replay_games = REPLAYS  # Number of times to replay a game. This is to better sample bot's random decisions.
 
     # Load the respective functions for each chosen heuristic.
     def prepare_heuristics(self, chosen_heuristics):
@@ -37,28 +33,12 @@ class Optimiser:
             self.heuristic_names.append(h)
             self.heuristics.append([getattr(heur, h)])
 
-    def save_heuristics(self, values):
-
-        for name, val in zip(self.heuristic_names, values):
-
-            if name not in self.opponent_profile['heuristics']:
-                self.opponent_profile['heuristics'][name] = {}
-
-            if self.map_type in self.opponent_profile['heuristics'][name]:
-                print('Replacing heuristic', '\'' + name + '\'', 'of value',
-                      self.opponent_profile['heuristics'][name][self.map_type], 'with:', val)
-            self.opponent_profile['heuristics'][name][self.map_type] = val
-
-        io.save_profile(self.opponent_profile, self.bot_name, self.opponent_name)
-
-    # Chooses k most recent games and picks the initial ship data.
-    def prepare_k_offensive_games(self, k):
+    # Chooses the games to play, based on a list of game_ids.
+    def prepare_offensive_games(self, game_ids):
         all_games = io.load_pickled_game_log(self.bot_name, self.opponent_name)
-        # Get latest k game_states
-        latest_k_entries = sorted(all_games.items(), reverse=True)[:k]
         self.games = []
-        for entry in latest_k_entries:
-            game_id, game_states = entry
+        for game_id in game_ids:
+            game_states = all_games[game_id]
             # Get last known board of the game.
             opp_board = _extract_original_opp_board(game_states[-1]['OppBoard'])
             self.games.append({'game_id': game_id, 'opp_board': opp_board, 'ships': game_states[-1]['Ships']})
@@ -72,7 +52,7 @@ class Optimiser:
         for game in self.games:
             for i in range(self.replay_games):
                 disposable_game = copy.deepcopy(game)
-                simulation = sim.GameSimulator(self.bot_name, None, disposable_game['opp_board'],
+                simulation = sim.GameSimulator(self.bot_location, None, disposable_game['opp_board'],
                                                disposable_game['ships'],
                                                heuristics=self.heuristics)
                 simulation.attack_until_win()
@@ -91,36 +71,20 @@ class Optimiser:
         for name in self.heuristic_names:
             boxes.append(heur.SEARCH_RANGES[name])
 
+        start = time.time()
+        print('Starting optimisation of:',','.join(self.heuristic_names))
+
         result = bb.search(f=self.play_games,  # given function
                            box=boxes,  # range of values for each parameter
-                           n=10,  # number of function calls on initial stage (global search)
-                           m=5,  # number of function calls on subsequent stage (local search)
-                           batch=4,  # number of calls that will be evaluated in parallel
+                           n=BB_GLOBAL_CALLS,  # number of function calls on initial stage (global search)
+                           m=BB_LOCAL_CALLS,  # number of function calls on subsequent stage (local search)
+                           batch=PARALLEL_CALLS,  # number of calls that will be evaluated in parallel
                            resfile='output.csv')  # text file where results will be saved
 
+        print('Completed after', '{:10.3f}'.format(time.time() - start) + 's')
 
         # Get top parameter values.
         return result[0]
-
-    def optimise_alt(self):
-        boxes = []
-        for name in self.heuristic_names:
-            boxes.append(heur.SEARCH_RANGES[name])
-
-        result = minimizeCompass(self.play_games, x0=[4], bounds=boxes, errorcontrol=True, paired=False, disp=True)
-        print(result)
-
-        return result['x']
-
-    def optimise_alt_2(self):
-        boxes = []
-        for name in self.heuristic_names:
-            boxes.append(heur.SEARCH_RANGES[name])
-
-        result = minimizeSPSA(self.play_games, x0=[1], bounds=boxes, paired=False, disp=True)
-        print(result)
-
-        return result['x']
 
     def set_optimisation_type(self, type):
         self.optimisation_type = type
@@ -141,29 +105,3 @@ def _extract_original_opp_board(finished_board):
 
     return opp_board
 
-
-def main():
-    import os
-    os.chdir('..')
-
-    start = time.time()
-
-    for i in range(10):
-        o = Optimiser('pho', 'housebot-master')
-        o.load_bot()
-        o.prepare_heuristics(['ship_adjacency'])
-        o.set_optimisation_type('minimise')
-        o.prepare_k_offensive_games(100)
-        o.set_replay_count(5)
-        # o.play_games([0.5])
-        result = o.optimise()
-        np.set_printoptions(suppress=True)
-        print(result)
-        # result = o.optimise_alt_2()
-        #o.save_heuristics(result[:-1])
-        # o.save_heuristics([0.5])
-
-    print('Time taken:', '{:10.3f}'.format(time.time() - start) + 's')
-
-if __name__ == '__main__':
-    main()

@@ -12,6 +12,8 @@ import argparse
 import src.ai.ai as ai
 import src.ui.battleships_visuals as ui
 import src.utils.game_recorder as record
+# Needs to import last to overwrite any default settings.
+import src.utils.config_manager
 
 # Platforms
 WINDOWS = (platform.system() == "Windows")
@@ -75,6 +77,9 @@ class BattleshipsDemoClient(Frame):
         self.close_after_game = False
         self.game_cancelled = False
         self.in_game = False
+
+        #Bot related variable
+        self.train_bot = args.trainbot
 
         self.topFrame = Frame(tk, padx=12, pady=12)
         self.middleFrame = Frame(tk, padx=12)
@@ -522,11 +527,11 @@ class BattleshipsDemoClient(Frame):
                 elif move_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + move_results['Result'])
                     if 'GameState' not in move_results:
-                        print('Connection lost?')
-                        print(move_results)
+                        print('Connection lost to server.')
+                        break
                     print("Game won!")
                     recorder.record_turn(move_results['GameState'])
-                    bot._add_game_to_profile(move_results['GameState'], True)
+                    bot.add_game_to_profile(move_results['GameState'], True)
                     break
                 else:
                     game_state = move_results['GameState']
@@ -543,7 +548,7 @@ class BattleshipsDemoClient(Frame):
                     self.resultText.config(text='Game has ended: ' + poll_results['Result'])
                     print("Game lost!")
                     recorder.record_turn(poll_results['GameState'])
-                    bot._add_game_to_profile(poll_results['GameState'], False)
+                    bot.add_game_to_profile(poll_results['GameState'],False)
                     break
                 game_state = poll_results['GameState']
             # END OF GAME
@@ -563,6 +568,7 @@ class BattleshipsDemoClient(Frame):
 
         self.set_in_game(False)
         recorder.record_end()
+        bot.finish_game(self.train_bot)
 
     def make_move(self, move):
         """Make a move."""
@@ -656,16 +662,24 @@ def int_with_commas(x):
     return "%d%s" % (x, result)
 
 
-parser = argparse.ArgumentParser(description='Set optional running parameters')
-parser.add_argument('--botid', default=None, help='log in with this bot name')
-parser.add_argument('--password', default=None, help='log in with this password')
-parser.add_argument('--gamestyle', default=None, help='play this gamestyle')
-parser.add_argument('--timeout', default=0, help='have this timeout in milliseconds')
-parser.add_argument('--playanothergame', action='store_true', help='Play another game when complete')
-parser.add_argument('--dontplaysameuserbot', action='store_true', help='Don\'t play another user in the same account')
-parser.add_argument('--closeaftergame', action='store_true',
-                    help='Close the client once the game has completed (takes priority over playanothergame)')
-cmd_args = parser.parse_args()
-root = Tk()
-my_gui = BattleshipsDemoClient(root, cmd_args)
-root.mainloop()
+def main():
+
+    parser = argparse.ArgumentParser(description='Set optional running parameters')
+    parser.add_argument('--botid', default=None, help='log in with this bot name')
+    parser.add_argument('--password', default=None, help='log in with this password')
+    parser.add_argument('--gamestyle', default=None, help='play this gamestyle')
+    parser.add_argument('--timeout', default=0, help='have this timeout in milliseconds')
+    parser.add_argument('--playanothergame', action='store_true', help='Play another game when complete')
+    parser.add_argument('--dontplaysameuserbot', action='store_true', help='Don\'t play another user in the same account')
+    parser.add_argument('--closeaftergame', action='store_true',
+                        help='Close the client once the game has completed (takes priority over playanothergame)')
+    parser.add_argument('--trainbot', action='store_true',
+                        help='Train the bot after a certain number of games has passed')
+
+    cmd_args = parser.parse_args()
+    root = Tk()
+    my_gui = BattleshipsDemoClient(root, cmd_args)
+    root.mainloop()
+
+if __name__=='__main__':
+    main()

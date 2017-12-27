@@ -1,5 +1,4 @@
 # Plays moves with bots
-import src.ai.ai as ai
 import src.ai.board_info as board_info
 
 import importlib
@@ -8,9 +7,8 @@ import copy
 
 
 class GameSimulator:
-    def __init__(self, bot_name, player_board, opponent_board, ships, heuristics=None):
-        self.bot_path = ai.PLUGIN_PATH + '.' + bot_name
-        self.bot = getattr(importlib.import_module(self.bot_path), 'Bot')()
+    def __init__(self, bot_location, player_board, opponent_board, ships, heuristics=None):
+        self.bot = getattr(importlib.import_module(bot_location), 'Bot')()
         self.player_board = player_board
         self.opponent_board = opponent_board
         self.opponent_masked_board = self.mask_board(self.opponent_board)
