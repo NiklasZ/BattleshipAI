@@ -149,18 +149,18 @@ def main():
     start = time.time()
 
     for i in range(10):
-        o = Optimiser('pho', 'housebot-competition')
+        o = Optimiser('pho', 'housebot-master')
         o.load_bot()
         o.prepare_heuristics(['ship_adjacency'])
         o.set_optimisation_type('minimise')
-        o.prepare_k_offensive_games(200)
-        o.set_replay_count(3)
+        o.prepare_k_offensive_games(100)
+        o.set_replay_count(5)
         # o.play_games([0.5])
         result = o.optimise()
         np.set_printoptions(suppress=True)
         print(result)
         # result = o.optimise_alt_2()
-        o.save_heuristics(result[:-1])
+        #o.save_heuristics(result[:-1])
         # o.save_heuristics([0.5])
 
     print('Time taken:', '{:10.3f}'.format(time.time() - start) + 's')
