@@ -1,24 +1,34 @@
 # The Bouillabaisse bot is the the 1st completed bot.
-# It uses mostly deterministic methods to choose targets.
-# Simultaneously its ship placement is completely random.
+# Its targeting discovers ships by shooting at the coordinates with the largest number of possible
+# configurations (alignments). Once it has hit a ship, it will greedily hunt down the longest hit sequence,
+# always choosing the position with more possible ship configurations.
+# In terms of defense, this bot just uses the default random placement which can generate any possible ship configuration.
 
-import src.ai.ship_targeting as ai_help
+# Project imports
+import src.ai.ship_targeting as ship_target
 import src.ai.board_info as board_info
 import src.ai.ship_deployment as ship_deploy
 
+# Library imports
 from random import choice
 import numpy as np
 
 class Bot:
-
+    """The Bot class, allowing the creation of an instance of the Bouillabaisse bot."""
     def __init__(self):
         self.bot_name = 'Bouillabaisse'
 
     def make_move(self, game_state):
+        """
+        This function decides where to launch the next shot on the opponent board.
+        :param game_state: A game_state dictionary, which conforms to the aigaming format.
+        :return: A coordinate dict, containing a Row, Column and Orientation to fire at. E.g {"Row":"C", Column:1}.
+        """
+
         opp_ships = np.array(board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
-        # If there are hits, try nearby targets.
+        # If there are hit ships that have not yet been sunk, try adjacent targets.
         if 'H' in opp_board:
 
             moves = _possible_hits(opp_board, opp_ships)
@@ -42,26 +52,42 @@ class Bot:
             choices = [move for move in moves if moves[move] == moves[highest]]
             y, x = choice(choices)
 
-        # print("Firing at:", ai_help.translate_coord_to_move(y, x))
         return board_info.translate_coord_to_move(y, x)
 
-    # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
+        """
+        This function returns a random deployment of ships on the board in teh game_state.
+        :param game_state:  A game_state dictionary, which conforms to the aigaming format.
+        :return: A list of ship coordinates, where one looks like: {"Row":"C", Column:1, Orientation: "H"}
+        """
         return ship_deploy.deploy_randomly(game_state['Ships'],game_state['MyBoard'])
 
 
-# Get possible hits given the opponent's board and remaining ships.
 def _possible_hits(opp_board, opp_ships):
-    hit_options = ai_help.adjacent_to_hits(opp_board)
+    """
+    Helper function that first obtains all coordinates adjacent to hits and then for each one gets a count of
+    applicable ships.
+    :param opp_board: a 2D numpy array containing a string representation of the board.
+    :param opp_ships: a list of ints, where each int is the length of a ship on the board.
+    :return: a dictionary of the structure {coordinate_of_hit:{possible_alignments:some_int, other vars...}}.
+    E.g {(1,1):{"possible_alignments":4,...}
+    """
+    hit_options = ship_target.adjacent_to_hits(opp_board)
     for hit in hit_options:
-        possible_ship_count = ai_help.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
+        possible_ship_count = ship_target.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
         hit_options[hit]['possible_alignments'] = possible_ship_count
     return hit_options
 
 
-# Look for possible targets based on alignment information.
 def _possible_targets(opp_board, opp_ships):
-    alignments = ai_help.possible_alignments(opp_board, opp_ships)
+    """
+    A helper function that finds all possible ship alignments for each coordinate on the board.
+    It then restructures these into a dictionary, returning only coordinates with alignments < 0.
+    :param opp_board: a 2D numpy array containing a string representation of the board.
+    :param opp_ships: a list of ints, where each int is the length of a ship on the board.
+    :return: a dictionary of the structure {coordinate:number_of_alignments}. E.g {(0,0):1}
+    """
+    alignments = ship_target.possible_alignments(opp_board, opp_ships)
     # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets

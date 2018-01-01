@@ -56,22 +56,6 @@ def bfs_games(bot, opp_board, ships, state_limit, randomise):
 
         leaves.append(node[1])
 
-    # unique = set()
-    # for leaf in leaves:
-    #     tuple = make_into_tuples(leaf)
-    #     unique.add(tuple)
-    #
-    # hit_count = 0
-    # miss_count = 0
-    #
-    # for leaf in leaves:
-    #     result = board_info.count_hits_and_misses(leaf)
-    #     hit_count += result['hits']
-    #     miss_count += result['misses']
-
-    # print('Final states found:', len(leaves))
-    # print('Unique states found:', len(unique))
-    # print('Hits:', hit_count, 'Misses:', miss_count)
     return leaves
 
 
