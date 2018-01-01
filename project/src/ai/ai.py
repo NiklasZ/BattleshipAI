@@ -86,12 +86,12 @@ class AI:
             self._train_bot()
 
     def _train_bot(self):
+
         o = bot_learn.Optimiser(self.bot.bot_name, self.opponent_name, self.bot_location)
         o.prepare_heuristics([h[0] for h in self.heuristic_info])
         o.set_optimisation_type('minimise')
         map_type, games = self._select_training_type()
         o.prepare_offensive_games(games)
-        o.set_replay_count(bot_learn.REPLAYS)
         result = o.optimise()
         self._save_heuristics(result[:-1], map_type)
 

@@ -11,6 +11,7 @@ class Bot:
     def __init__(self):
         self.bot_name = 'Pho'
         self.heuristics = []
+        self.last_choices = None
 
     def set_heuristics(self, heuristics):
         self.heuristics = heuristics
@@ -34,14 +35,14 @@ class Bot:
             max_fit_pos = max(length_choices, key=lambda x: length_choices[x]['score'])
             max_fit = length_choices[max_fit_pos]['score']
             choices = [move for move in length_choices if length_choices[move]['score'] == max_fit]
-            y, x = choice(choices)
-
         # If not, search for possible targets from the grid.
         else:
             moves = self._possible_targets(opp_board, opp_ships)
             highest = max(moves, key=lambda x: moves[x])
             choices = [move for move in moves if moves[move] == moves[highest]]
-            y, x = choice(choices)
+
+        self.last_choices = choices
+        y, x = choice(choices)
         return board_info.translate_coord_to_move(y, x)
 
     # Call to deploy ships at the start of the game.

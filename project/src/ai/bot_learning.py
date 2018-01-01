@@ -1,18 +1,19 @@
 import src.ai.board_info as board_info
 import src.utils.fileIO as io
-import src.utils.game_simulator as sim
 import src.ai.heuristics as heur
 import lib.blackbox as bb
+import src.ai.offensive_explorer as explorer
 
 import copy
 import numpy as np
 import time
 
-BB_GLOBAL_CALLS = 10 # Number of global search calls the black box optimisation makes.
-BB_LOCAL_CALLS = 5 # Number of local search calls the black box optimisation makes.
-GAME_COUNT = 100 # Default number of games the optimiser uses.
-REPLAYS = 5 # Default number ot times each game is played.
-PARALLEL_CALLS = 4 # Default number of threads that will investigate different parameters.
+BB_GLOBAL_CALLS = 10  # Number of global search calls the black box optimisation makes.
+BB_LOCAL_CALLS = 5  # Number of local search calls the black box optimisation makes.
+GAME_COUNT = 100  # Default number of games the optimiser uses.
+REPLAYS = 5  # Default number ot times each game is played.
+PARALLEL_CALLS = 4  # Default number of threads that will investigate different parameters.
+
 
 class Optimiser:
     def __init__(self, bot_name, opponent_name, bot_location):
@@ -50,18 +51,20 @@ class Optimiser:
         misses = []
         hits = []
         for game in self.games:
-            for i in range(self.replay_games):
-                disposable_game = copy.deepcopy(game)
-                simulation = sim.GameSimulator(self.bot_location, None, disposable_game['opp_board'],
-                                               disposable_game['ships'],
-                                               heuristics=self.heuristics)
-                simulation.attack_until_win()
-                result = board_info.count_hits_and_misses(simulation.opponent_masked_board)
-                hits.append(result['hits'])
-                misses.append(result['misses'])
+            disposable_game = copy.deepcopy(game)
+            sampled_games = explorer.init_bfs(self.bot_location, self.heuristics, disposable_game['opp_board'],
+                                              disposable_game['ships'], explorer.BOARD_SAMPLES)
+            sampled_misses = []
+            sampled_hits = []
+            for s_g in sampled_games:
+                result = board_info.count_hits_and_misses(s_g)
+                sampled_misses.append(result['misses'])
+                sampled_hits.append(result['hits'])
+
+            misses.append(np.average(sampled_misses))
+            hits.append(np.average(sampled_hits))
 
         if self.optimisation_type == 'minimise':
-            # print(heuristic_values,np.sum(misses))
             return np.average(misses)
         if self.optimisation_type == 'maximise':
             return np.average(np.divide(hits, misses + hits))
@@ -72,8 +75,7 @@ class Optimiser:
             boxes.append(heur.SEARCH_RANGES[name])
 
         start = time.time()
-        print('Starting optimisation of:',','.join(self.heuristic_names))
-
+        print('Starting optimisation of:', ','.join(self.heuristic_names))
         result = bb.search(f=self.play_games,  # given function
                            box=boxes,  # range of values for each parameter
                            n=BB_GLOBAL_CALLS,  # number of function calls on initial stage (global search)
@@ -81,16 +83,13 @@ class Optimiser:
                            batch=PARALLEL_CALLS,  # number of calls that will be evaluated in parallel
                            resfile='output.csv')  # text file where results will be saved
 
-        print('Completed after', '{:10.3f}'.format(time.time() - start) + 's')
+        print('Completed after', '{:.3f}'.format(time.time() - start) + 's')
 
         # Get top parameter values.
         return result[0]
 
     def set_optimisation_type(self, type):
         self.optimisation_type = type
-
-    def set_replay_count(self, amount):
-        self.replay_games = amount
 
 
 # Extract sunken ship data from an opponent to create an unused copy for training.
@@ -105,3 +104,19 @@ def _extract_original_opp_board(finished_board):
 
     return opp_board
 
+
+def main():
+    bot_location = 'src.ai.bots' + '.pho'
+    o = Optimiser('pho', 'housebot-competition', bot_location)
+    game_dict = o.opponent_profile['games']
+    games = [g for g in sorted(game_dict, reverse=True)[:10]]
+    o.set_optimisation_type('minimise')
+    o.prepare_offensive_games(games)
+    o.prepare_heuristics(['ship_adjacency'])
+    #result = o.play_games([])
+    result = o.optimise()
+    print('\nChosen parameters:', result)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,12 +1,11 @@
-import matplotlib.pyplot as plt
+
 import src.utils.fileIO as io
+import src.ai.bot_learning as bot_learn
+import src.ai.heuristics as heur
 
 import numpy as np
-import os
 import pandas as pd
-
-os.chdir('..')  # very lazy fix.
-
+import matplotlib.pyplot as plt
 
 def plot_performance_vs_opponent(bot_names, opponent_name, running_avg_window, game_count):
     bot_data = {'win rate': {},
@@ -55,4 +54,43 @@ def calculate_win_rates(wins):
     return win_avg
 
 
-plot_performance_vs_opponent(['bouillabaisse', 'gazpacho'], 'housebot-master', 12, 400)
+def plot_heuristic_vs_opponent(bot_location, bot_name, opponent_name, game_count, heuristic_name, heuristic_values, repetitions,file_name_suffix='',):
+
+
+    sampled_performances = [[]]*repetitions
+    for i in range(repetitions):
+        sampled_performances[i] = heuristic_vs_opponent(bot_location,bot_name, opponent_name, game_count, heuristic_name, heuristic_values)
+        plt.plot(heuristic_values,sampled_performances[i])
+    plt.xlabel('Values of '+heuristic_name)
+    plt.ylabel('Loss (Misses) obtained')
+    plt.title(bot_name+' heuristic '+heuristic_name+' performance vs. '+opponent_name)
+    plt.savefig(io.DATA_DIR + io.IMG_DIR + '/'+bot_name+'_'+heuristic_name+'_perf_vs_' + opponent_name + file_name_suffix+'.svg')
+    plt.show()
+
+
+def heuristic_vs_opponent(bot_location, bot_name, opponent_name, game_count, heuristic_name, heuristic_values):
+
+    performances = []
+    for h_val in heuristic_values:
+        o = bot_learn.Optimiser(bot_name, opponent_name, bot_location)
+        game_dict = o.opponent_profile['games']
+        games = [g for g in sorted(game_dict, reverse=True)[:game_count]]
+        o.prepare_heuristics([heuristic_name])
+        o.prepare_offensive_games(games)
+        o.set_optimisation_type('minimise')
+        result = o.play_games([h_val])
+        print('Final avg:', '{:.3f}'.format(result))
+        performances.append(result)
+
+    return performances
+
+# plot_performance_vs_opponent(['bouillabaisse', 'gazpacho','pho'], 'housebot-master', 12, 100)
+
+bot_location = 'src.ai.bots' + '.pho'
+start = heur.SEARCH_RANGES['ship_adjacency'][0]
+stop = heur.SEARCH_RANGES['ship_adjacency'][1]
+heuristic_values = np.linspace(start,stop,num=20)
+plot_heuristic_vs_opponent(bot_location, 'pho', 'housebot-competition', 10, 'ship_adjacency', heuristic_values,5,'multi_test-20val-10g')
+
+
+

@@ -27,9 +27,9 @@ class GameRecorder:
 
         self.log.append('\n')
         self.log.append(self.bot_name)
-        self.log.append('\n' + self.board_to_string(game_state['MyBoard']) + '\n')
+        self.log.append('\n' + board_to_string(game_state['MyBoard']) + '\n')
         self.log.append(self.opponent_name)
-        self.log.append('\n' + self.board_to_string(game_state['OppBoard']) + '\n')
+        self.log.append('\n' + board_to_string(game_state['OppBoard']) + '\n')
         self.log.append('\n')
 
     # Wrap up and write the file.
@@ -41,11 +41,11 @@ class GameRecorder:
         io.save_game_log(self.bot_name, self.opponent_name, self.game_id, ''.join(self.log), self.game_history)
 
     # Converts board to somewhat more readable string.
-    def board_to_string(self, board):
-        text = ''
-        for row in board:
-            for field in row:
-                text += "{:<2}".format(field) + " "
-            text += '\n'
+def board_to_string(board):
+    text = ''
+    for row in board:
+        for field in row:
+            text += "{:<2}".format(field) + " "
+        text += '\n'
 
-        return text
+    return text

@@ -127,6 +127,33 @@ class TestGameSimulator(TestCase):
 
         self.assertTrue(np.array_equal(masked, masked_test))
 
+    def test_has_won(self):
+        incomplete_1 = [['0', '0', '0', '0', '', ''],
+                          ['', '', '1', '', '', ''],
+                          ['', '', '1', '', '', ''],
+                          ['', 'L', '1', '', '', ''],
+                          ['L', 'L', 'L', 'L', 'L', ''],
+                          ['L', 'L', '2', '2', 'L', '']]
+
+        incomplete_2 = [['S0', 'S0', 'S0', 'S0', '', ''],
+                        ['', '', '', 'H1', '', ''],
+                        ['', '', '', 'H1', '', ''],
+                        ['', 'L', '', '1', '', ''],
+                        ['L', 'L', 'L', 'L', 'L', ''],
+                        ['L', 'L', '2', '2', 'L', '']]
+
+        complete_1 = [['S0', 'S0', 'S0', 'S0', '', ''],
+                       ['', '', '', 'S1', '', ''],
+                       ['', '', '', 'S1', '', ''],
+                       ['', 'L', '', 'S1', '', ''],
+                       ['L', 'L', 'L', 'L', 'L', ''],
+                       ['L', 'L', 'S2', 'S2', 'L', '']]
+        ships = [4, 3, 2]
+
+        game = init_simulator(None, incomplete_1, ships)
+        game.has_won(incomplete_1)
+        game.has_won(incomplete_2)
+        game.has_won(complete_1)
 
 def init_simulator(player_board, opp_board, ships, bot_location=ai.PLUGIN_PATH+'.gazpacho'):
     return sim.GameSimulator(bot_location, player_board, opp_board, ships)

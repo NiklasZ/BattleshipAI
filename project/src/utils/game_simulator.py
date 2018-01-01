@@ -19,8 +19,14 @@ class GameSimulator:
         # Check if the bot has a heuristics setting function.
         if callable(set_heuristics) and heuristics:
             set_heuristics(heuristics)
+        else:
+            print('Bot',self.bot.bot_name,'does not use heuristics.')
 
-    # Have the bot choose an coordinate to attack.
+    def attack_until_win(self):
+        while not self.has_won(self.opponent_board):
+            self.attack_opponent()
+
+    # Have the bot choose a coordinate to attack.
     def attack_opponent(self):
         game_state = {'Ships': self.ships, 'OppBoard': self.opponent_masked_board, 'MyBoard': self.player_board}
 
@@ -29,7 +35,7 @@ class GameSimulator:
         self.shoot_at_opponent(coord)
 
     # Modify the board based on where the shot hit.
-    def shoot_at_opponent(self, coord):
+    def shoot_at_opponent(self, coord,):
         y, x = coord
         val = self.opponent_board[y][x]
         if len(val) == 0:
@@ -59,13 +65,12 @@ class GameSimulator:
 
         return masked
 
-    def attack_until_win(self):
-        while not self.has_won():
-            self.attack_opponent()
 
-    def has_won(self):
-        for (y, x), val in np.ndenumerate(self.opponent_board):
+
+    def has_won(self, board):
+        for (y, x), val in np.ndenumerate(board):
             if val.isdigit():
                 return False
 
         return True
+
