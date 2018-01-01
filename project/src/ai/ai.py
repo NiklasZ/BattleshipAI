@@ -23,7 +23,7 @@ class AI:
         if board_info.is_there_land(np.array(game_state['MyBoard'])):
             self.map_type = 'land'
         else:
-            self.map_type = 'no land'
+            self.map_type = 'no-land'
 
     # Receive the name of a bot module to load from the 'bots' sub-folder.
     # Class name needs to be "Bot" to be found.
