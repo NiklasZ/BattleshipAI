@@ -53,6 +53,18 @@ class TestAlignments(unittest.TestCase):
         self.assertEqual(len(ship_target._alignments_in(0, 4, board, ships)), 4)
         self.assertEqual(len(ship_target._alignments_in(2, 1, board, ships)), 0)
 
+    # To ensure that a ships of the same length are counted separately.
+    def test_single_board_alignment_same_ship_length(self):
+        ships = [2,3,3]
+        board = [['', '', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['', 'M', '', '', ''],
+                 ['', 'M', '', '', '']]
+        self.assertEqual(len(ship_target._alignments_in(0, 0, board, ships)), 4)
+        self.assertEqual(len(ship_target._alignments_in(0, 4, board, ships)), 6)
+        self.assertEqual(len(ship_target._alignments_in(2, 1, board, ships)), 0)
+
     # Check alignments on a whole board.
     def test_whole_board_alignment(self):
         ships = [2, 3, 4]

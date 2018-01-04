@@ -1,43 +1,67 @@
-import numpy as np
+# This module contains all functions related to scoring possible targets for a ship. These will be called by a bot
+# to receive a recommendation as to where it is best to shoot next.
 
-# =============================================================================
-# The code below shows a selection of helper functions designed to make the
-# time to understand the environment and to get a game running as short as
-# possible. The code also serves as an example of how to manipulate the myBoard
-# and opp_board dictionaries that are in gameState.
-
-# Gets all possible alignments on a board. The optional parameter allows
-# removing redundant alignments.
+# project imports
 import src.ai.ship_deployment as ship_deploy
 
+# library imports
+import numpy as np
 
-def possible_alignments(opp_board, opp_ships, reduce=False):
-    alignments = np.zeros((len(opp_board), len(opp_board[0])), dtype=int)
-    # A dict of coordinates and their valid ship alignments.
+
+def possible_alignments(board, ships, reduce=False):
+    """
+    Counts how many possible ship alignments there are on each cell on the board. So if for coordinate (0,1), there are
+    2 possible ships that can be fit to lie on this coordinate then returned_array[0,1] = 2.
+    :param board: a 2D numpy array containing a string representation of the board.
+    :param ships: a list of ints, where each int is the length of a ship on the board.
+    :param reduce: an optional parameter that will call a function that sets redundant alignments to 0. More details
+    in _reduce_alignments.
+    :return: a 2D numpy array containing integers, each a count of the possible alignments per cell.
+    """
+    # board in which to store the alignments.
+    alignments = np.zeros((len(board), len(board[0])), dtype=int)
+    # A dict of coordinates and their valid ship alignments. Maps as follows {coordinate:set(ship_1,ship_2,ship_3,...)}
+    # where each set is a tuple containing the information necessary to uniquely identify a ship.
     ship_sets = {}
     # y is the row, x is the column
-    for y in range(0, len(opp_board)):
-        for x in range(0, len(opp_board[0])):
-            if opp_board[y][x] == '':
-                ship_alignments = _alignments_in(y, x, opp_board, opp_ships)
+    for y in range(0, len(board)):
+        for x in range(0, len(board[0])):
+            # only bother with empty cells (as it is otherwise always 0).
+            if board[y][x] == '':
+                # find alignments per cell
+                ship_alignments = _alignments_in(y, x, board, ships)
 
+                # Optionally check if the found alignments are redundant.
                 if reduce:
                     _reduce_alignments(y, x, ship_sets, ship_alignments)
                 else:
                     ship_sets[(y, x)] = ship_alignments
 
+    # Set each coordinate to the number of alignments.
     for coord, valid_alignments in ship_sets.items():
         alignments[coord] = len(valid_alignments)
 
     return alignments
 
 
-# Function that detects and removes redundant alignments if they are complete subsets of another cell.
-# In practical terms this means that there is no point at firing at some cell A on a board because there exists another
-# cell B that when fired at, can eliminate all possibilities of there being a ship in A.
-
 def _reduce_alignments(y, x, ship_sets, ship_alignments):
-    # If is first element, add it and skip checking against itself.
+    """
+    Function that detects and removes a coordinate's alignments if it is a subset of another coordinate's alignments.
+    This means for example that if coordinate (y,x) can fit ships s_1, s_2 and there is already some other coordinate C
+    in ship_sets that can fit s_1,s_2 and possibly other ships, there is no gain to ever firing at (y,x) as firing at C
+    will already ascertain if any of the possible ships are there. Accordingly it in this case removes the alignments of
+    (y,x) as they are subset-equal to C's alignments.
+    The reverse case where (y,x) has alignments of which the alignments some C in ship_sets in a subset is also
+    accounted for. Finally, in order for this to work, we need to assume that the sets in ship_sets are not subsets of
+    each other.
+    :param y: row index of the coordinate
+    :param x: column index of the coordinate
+    :param ship_sets: a dictionary that maps a coordinate to a set of ships
+     of the form {coordinate:set(ship_1,ship_2,ship_3,...)}
+    :param ship_alignments: this is a set of the ships for the coordinate (y,x).
+    :return: None
+    """
+    # If is first element to add to ship_sets, add it and skip checking against itself.
     if len(ship_sets) == 0:
         ship_sets[(y, x)] = ship_alignments
         return
@@ -46,46 +70,42 @@ def _reduce_alignments(y, x, ship_sets, ship_alignments):
 
     # Compare new alignments to existing ones.
     for coord, valid_alignments in list(ship_sets.items()):
-        # If it is a subset of existing alignments, do not add it.
+        # If (y,x)'s alignments are a subset of existing alignments, do not add it.
         if ship_alignments.issubset(valid_alignments):
             is_subset = True
             break
-        # If an existing element is its subset, remove it.
+        # If an existing element's alignments are subset to (y,x)'s alignments, remove it.
         elif valid_alignments.issubset(ship_alignments):
             del ship_sets[coord]
 
+    # If the (y,x)'s alignments are not subset to any alignments in ship_sets add the alignments.
     if not is_subset:
         ship_sets[(y, x)] = ship_alignments
 
 
-# Gets number of valid alignments for a position
-# Will return a set of ship deployments each in the form of (y - i, x, ship_length, orientation)
 def _alignments_in(y, x, opp_board, opp_ships):
-    valid_alignments = set()
-    for ship_length in opp_ships:
+    """
+    Determines which ships can be placed so they intersect with the given (y,x) coordinate.
+    :param y:
+    :param x:
+    :param opp_board:
+    :param opp_ships:
+    :return: A set of tuples, where each tuple has the form: (y_ship, x_ship, ship_length,
+    """
+    valid_alignments = set() # Set of tuples, where each tuple is a unique ship.
+    for ship_id,ship_length in enumerate(opp_ships):
+        # This index shifts the a ship across the coordinate.
         for i in range(0, ship_length):
             # Vertical alignment attempts
             if y - i >= 0 and ship_deploy.can_deploy(y - i, x, opp_board, ship_length, "V"):
-                valid_alignments.add((y - i, x, ship_length, 'V'))
+                # Add a tuple of the ship to identify it.
+                valid_alignments.add((y - i, x, ship_length, 'V',ship_id))
             # Horizontal alignment attempts
             if x - i >= 0 and ship_deploy.can_deploy(y, x - i, opp_board, ship_length, "H"):
-                valid_alignments.add((y, x - i, ship_length, 'H'))
+                # Add a tuple of the ship to identify it.
+                valid_alignments.add((y, x - i, ship_length, 'H',ship_id))
 
     return valid_alignments
-
-
-# Returns whether given location can fit given ship onto given board and, if it can, updates the given board with that ships position
-
-
-# Returns a list of the lengths of your opponent's ships that haven't been sunk
-
-
-# Ascertains if a given ship can be deployed at a given location
-# The optional valid_fields parameter is for when other types of spaces such as hits (H) should be considered acceptable
-# to deploy over.
-
-
-# Removes a specified ship from a board.
 
 
 # For a hit option, calculate the number of possible alignments and return the results + possibilities.
@@ -288,23 +308,6 @@ def _add_to_hits(hits, coord, seq_length, direction):
     elif seq_length > hits[coord]['seq_length']:
         hits[coord] = {'seq_length': seq_length, 'direction': direction}
 
-
-# Count the number of hits and misses on a board.
-
-
-# Deploys all the ships randomly on a blank board
-
-
-# Detects if there is land on the board
-
-
-# Given a valid coordinate on the board returns it as a correctly formatted move on a battleship grid.
-
-
-# Given a formatted move on a battleship, extract the original array indices.
-
-
-# Given a valid coordinate on the board returns it as a correctly formatted ship
 
 # Function that creates targeting scores using provided heuristics.
 # Each heuristic is provided as a tuple of (function, args) in a list.
