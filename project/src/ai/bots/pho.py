@@ -55,8 +55,6 @@ class Bot:
         if result is None:
             return ship_deploy.deploy_randomly(ships, player_board)
 
-        print("Found possible ship placement after", result[-1]['attempts'], 'attempts')
-
         return ship_deploy.format_ship_deployment(result)
 
     # Get possible hits given the opponent's board and remaining ships.
@@ -70,7 +68,7 @@ class Bot:
 
     # Look for possible targets based on alignment information.
     def _possible_targets(self, opp_board, opp_ships):
-        scores = ship_target.get_targeting_scores(opp_board, opp_ships, self.heuristics)
+        scores = ship_target.targeting_scores(opp_board, opp_ships, self.heuristics)
         # Get all non-zero possible alignments and their indices.
         targets = {(y, x): val for y, row in enumerate(scores) for x, val in enumerate(row)}
         return targets

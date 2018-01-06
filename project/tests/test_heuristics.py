@@ -49,7 +49,7 @@ class TestHeuristicAdjacency(TestCase):
         adj_weight = 0.5
         heuristic = (heur.ship_adjacency, adj_weight)
 
-        scores = ship_target.get_targeting_scores(board, ships, [heuristic])
+        scores = ship_target.targeting_scores(board, ships, [heuristic])
         for row, row_t in zip(scores, scores_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)
@@ -79,7 +79,7 @@ class TestHeuristicAdjacency(TestCase):
         adj_weight = 2
         heuristic = (heur.ship_adjacency, adj_weight)
 
-        scores = ship_target.get_targeting_scores(board, ships, [heuristic])
+        scores = ship_target.targeting_scores(board, ships, [heuristic])
         for row, row_t in zip(scores, scores_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)

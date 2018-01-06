@@ -1,8 +1,6 @@
 import unittest
 
 import src.ai
-import src.ai.ship_deployment
-import src.ai.board_info
 
 
 class TestDeployment(unittest.TestCase):
@@ -31,9 +29,9 @@ class TestDeployment(unittest.TestCase):
         self.assertTrue(src.ai.ship_deployment.can_deploy(0, 2, board, 3, 'V'))
         self.assertTrue(src.ai.ship_deployment.can_deploy(0, 3, board, 3, 'V'))
 
+class TestShipTranslation(unittest.TestCase):
 
-class BoardTranslation(unittest.TestCase):
-
+    # Check if a ship translates correctly to battleship standard.
     def test_ship_translation(self):
         ship_y = 1
         ship_x = 2
@@ -45,29 +43,3 @@ class BoardTranslation(unittest.TestCase):
         test_dict = {'Row': test_y, 'Column': test_x, 'Orientation': test_ship_orientation}
 
         self.assertEqual(test_dict, src.ai.ship_deployment.translate_ship(ship_y, ship_x, ship_orientation))
-
-    def test_coord_translation(self):
-        y = 0
-        x = 3
-
-        test_y = 'A'
-        test_x = 4
-        test_dict = {'Row': test_y, 'Column': test_x}
-
-        self.assertEqual(test_dict, src.ai.board_info.translate_coord_to_move(y, x))
-
-    def test_move_translation(self):
-        y = 'E'
-        x = 5
-        move_dict = {'Row': y, 'Column': x}
-
-        test_y = 4
-        test_x = 4
-
-        self.assertEqual((test_y, test_x), src.ai.board_info.translate_move_to_coord(move_dict))
-
-
-if __name__ == '__main__':
-    unittest.main()
-
-

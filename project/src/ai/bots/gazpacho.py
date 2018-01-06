@@ -51,8 +51,6 @@ class Bot:
         if result is None:
             return ship_deploy.deploy_randomly(ships,player_board)
 
-        print("Found possible ship placement after", result[-1]['attempts'], 'attempts')
-
         return ship_deploy.format_ship_deployment(result)
 
 

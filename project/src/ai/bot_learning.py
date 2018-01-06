@@ -11,7 +11,6 @@ import time
 BB_GLOBAL_CALLS = 10  # Number of global search calls the black box optimisation makes.
 BB_LOCAL_CALLS = 5  # Number of local search calls the black box optimisation makes.
 GAME_COUNT = 100  # Default number of games the optimiser uses.
-REPLAYS = 5  # Default number ot times each game is played.
 PARALLEL_CALLS = 4  # Default number of threads that will investigate different parameters.
 
 
@@ -26,7 +25,6 @@ class Optimiser:
         self.heuristic_names = []
         self.optimisation_type = None
         self.map_type = 'generic'
-        self.replay_games = REPLAYS  # Number of times to replay a game. This is to better sample bot's random decisions.
 
     # Load the respective functions for each chosen heuristic.
     def prepare_heuristics(self, chosen_heuristics):

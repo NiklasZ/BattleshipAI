@@ -55,7 +55,7 @@ class TestAlignments(unittest.TestCase):
 
     # To ensure that a ships of the same length are counted separately.
     def test_single_board_alignment_same_ship_length(self):
-        ships = [2,3,3]
+        ships = [2, 3, 3]
         board = [['', '', '', '', ''],
                  ['', 'H', '', '', ''],
                  ['L', '', 'M', '', ''],
@@ -145,6 +145,23 @@ class TestHitSelection(unittest.TestCase):
         # Checks that there are no extra finds.
         self.assertEqual(len(hit_positions), len(test_positions))
 
+    # Check whether it will prioritise longer sequence lengths for coordinates.
+    def test_ajacent_selection_prioritise_length(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['H', 'H', 'H', 'H', 'H'],
+                 ['', 'M', '', 'H', 'H']]
+
+        # (2,1) should yield 2 instead of 1 and (4,2) should yield 2 instead of 1.
+        test_positions = [(0, 0, 1), (0, 2, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 2), (2, 4, 2), (4, 0, 1),
+                          (4, 2, 2)]
+        hit_positions = ship_target.adjacent_to_hits(board)
+
+        for tp in test_positions:
+            if tp in hit_positions:
+                self.assertEqual(tp[2], hit_positions['seq_length'])
+
     # Check whether the length of the found segments is correct.
     def test_adjacent_selection_segment_length(self):
         board = [['', 'H', '', '', ''],
@@ -158,6 +175,20 @@ class TestHitSelection(unittest.TestCase):
         for tp in test_positions:
             if tp in hit_positions:
                 self.assertEqual(tp[2], hit_positions['seq_length'])
+
+    # Check whether the relative direction between the coordinate and sequence is correct.
+    def test_adjacent_selection_direction(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', '', ''],
+                 ['L', '', 'M', '', ''],
+                 ['H', 'M', 'H', 'H', 'H'],
+                 ['', 'M', '', 'H', '']]
+        test_positions = [(0, 0, 'left'), (0, 2, 'right'), (1, 0, 'left'), (1, 2, 'right'), (2, 1, 'bottom'),
+                          (2, 3, 'top'), (2, 4, 'top'), (4, 0, 'bottom'), (4, 2, 'left'), (4, 4, 'right')]
+        hit_positions = ship_target.adjacent_to_hits(board)
+        for tp in test_positions:
+            if tp in hit_positions:
+                self.assertEqual(tp[2], hit_positions['direction'])
 
 
 class TestHitPossibilities(unittest.TestCase):
@@ -193,7 +224,7 @@ class TestHitPossibilities(unittest.TestCase):
 
         hit_pos_A = (3, 4)
         hit_option_A = {'seq_length': 1, 'direction': 'top'}
-        test_count_A = 4  # The ship of length 1 is impossible as the length already is 1 and the length 6 does not fit.
+        test_count_A = 4  # All are possible save, for size 6.
 
         hit_pos_B = (0, 1)
         hit_option_B = {'seq_length': 1, 'direction': 'top'}

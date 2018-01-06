@@ -23,7 +23,6 @@ learn_config = config['Optimisation']
 learn.BB_GLOBAL_CALLS = int(learn_config['black box global calls'])
 learn.BB_LOCAL_CALLS = int(learn_config['black box local calls'])
 learn.GAME_COUNT = int(learn_config['games to train'])
-learn.REPLAYS = int(learn_config['replayable games'])
 learn.PARALLEL_CALLS = int(learn_config['parallel calls'])
 explore.BOARD_SAMPLES = int(learn_config['boards to sample per game'])
 
