@@ -133,10 +133,10 @@ class AI:
                 self.opponent_profile['heuristics'][name] = {}
 
             if map_type in self.opponent_profile['heuristics'][name]:
-                print('Replacing',map_type,'heuristic', '\'' + name + '\'', 'of value',
+                print('Replacing', map_type, 'heuristic', '\'' + name + '\'', 'of value',
                       self.opponent_profile['heuristics'][name][map_type], 'with:', val)
             else:
-                print('Setting',map_type,'heuristic', '\'' + name + '\'','with:', val)
+                print('Setting', map_type, 'heuristic', '\'' + name + '\'', 'with:', val)
             self.opponent_profile['heuristics'][name][map_type] = val
 
         io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
@@ -197,19 +197,34 @@ class AI:
     # Computes and displays play-time stats in this match-up.
     def display_play_stats(self):
         if self.opponent_profile:
+            print('\n---', self.opponent_profile['bot_name'], 'vs:', self.opponent_profile['opponent_name'], '---')
+
             game_stats = self.opponent_profile['games'].values()
+            print('Games played:', len(game_stats))
 
             wins = [game['victory'] for game in game_stats]
             avg_wins = wins.count(True) / len(wins)
+            win_str = 'Win rate: '+ '{:.3f}'.format(avg_wins * 100) + '%'
 
-            accuracies = [game['accuracy'] for game in game_stats]
-            avg_accuracy = np.average(accuracies)
+            map_wins = [game['victory'] for game in game_stats if game['map_type'] == self.map_type]
+            if map_wins:
+                avg_map_wins = map_wins.count(True)/len(map_wins)
+                win_str += '     '+self.map_type+': '+'{:.3f}'.format(avg_map_wins * 100) + '%'
 
-            evasions = [game['evasion'] for game in game_stats]
-            avg_evasion = np.average(evasions)
+            print(win_str)
 
-            print('\n---', self.opponent_profile['bot_name'], 'vs:', self.opponent_profile['opponent_name'], '---')
-            print('Games played:', len(game_stats))
-            print('Win rate:', '{:10.3f}'.format(avg_wins * 100) + '%')
-            print('Average accuracy:', '{:10.3f}'.format(avg_accuracy * 100) + '%     ',
-                  'Average evasion:', '{:10.3f}'.format(avg_evasion * 100) + '%\n')
+            avg_accuracy = np.average([game['accuracy'] for game in game_stats])
+            avg_evasion = np.average([game['evasion'] for game in game_stats])
+            print('Average accuracy:', '{:.3f}'.format(avg_accuracy * 100) + '%     ',
+                  'Average evasion:', '{:.3f}'.format(avg_evasion * 100) + '%')
+
+            avg_map_accuracies = [g['accuracy'] for g in game_stats if g['map_type'] == self.map_type]
+            avg_map_evasions = [g['evasion'] for g in game_stats if g['map_type'] == self.map_type]
+
+            # In case this is the first game on this kind of map, do not show any performances.
+            if avg_map_accuracies and avg_map_evasions:
+                avg_map_accuracy = np.average(avg_map_accuracies)
+                avg_map_evasion = np.average(avg_map_evasions)
+                print('Average', self.map_type, 'accuracy:', '{:.3f}'.format(avg_map_accuracy * 100) + '%     ',
+                      'Average', self.map_type, 'evasion:', '{:.3f}'.format(avg_map_evasion * 100) + '%')
+            print()
