@@ -1,5 +1,5 @@
 import src.ai.board_info as board_info
-import src.utils.fileIO as io
+import src.utils.file_io as io
 import src.ai.heuristics as heur
 import lib.blackbox as bb
 import src.ai.offensive_explorer as explorer

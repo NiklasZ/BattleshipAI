@@ -1,3 +1,5 @@
+# This module contains functions that can be used to get basic information out of a battleship board, without any
+# interpretation.
 import numpy as np
 
 

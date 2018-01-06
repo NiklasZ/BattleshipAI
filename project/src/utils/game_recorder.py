@@ -1,4 +1,4 @@
-import src.utils.fileIO as io
+import src.utils.file_io as io
 import datetime
 
 MAX_GAMES_LOGGED_PER_OPPONENT = 200

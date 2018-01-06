@@ -24,23 +24,23 @@ class TestNeighbourCoordinateRemoval(unittest.TestCase):
         test_coords_E = {(0, 1), (0, 2), (1, 2), (2, 1), (2, 2)}
 
         available_coords_A = set(available_coords)
-        src.ai.ship_deployment._remove_neighbours((1, 1), available_coords_A, board)
+        src.ai.ship_deployment._remove_self_and_neighbours((1, 1), available_coords_A, board)
         self.assertEqual(test_coords_A, available_coords_A)
 
         available_coords_B = set(available_coords)
-        src.ai.ship_deployment._remove_neighbours((0, 1), available_coords_B, board)
+        src.ai.ship_deployment._remove_self_and_neighbours((0, 1), available_coords_B, board)
         self.assertEqual(test_coords_B, available_coords_B)
 
         available_coords_C = set(available_coords)
-        src.ai.ship_deployment._remove_neighbours((1, 2), available_coords_C, board)
+        src.ai.ship_deployment._remove_self_and_neighbours((1, 2), available_coords_C, board)
         self.assertEqual(test_coords_C, available_coords_C)
 
         available_coords_D = set(available_coords)
-        src.ai.ship_deployment._remove_neighbours((2, 1), available_coords_D, board)
+        src.ai.ship_deployment._remove_self_and_neighbours((2, 1), available_coords_D, board)
         self.assertEqual(test_coords_D, available_coords_D)
 
         available_coords_E = set(available_coords)
-        src.ai.ship_deployment._remove_neighbours((1, 0), available_coords_E, board)
+        src.ai.ship_deployment._remove_self_and_neighbours((1, 0), available_coords_E, board)
         self.assertEqual(test_coords_E, available_coords_E)
 
     # Testing the removal of available coordinates around a ship.
@@ -65,10 +65,10 @@ class TestNeighbourCoordinateRemoval(unittest.TestCase):
         available_coords_B = set(available_coords)
         test_coords_B = {(1, 0), (2, 0), (2, 1), (2, 2)}
 
-        src.ai.ship_deployment._remove_neighbouring_coords(ship_A_position, ship_A_orientation, available_coords_A, ship_A_length, board)
+        src.ai.ship_deployment._remove_current_and_neighbouring_coords(ship_A_position, ship_A_orientation, available_coords_A, ship_A_length, board)
         self.assertEqual(test_coords_A, available_coords_A)
 
-        src.ai.ship_deployment._remove_neighbouring_coords(ship_B_position, ship_B_orientation, available_coords_B, ship_B_length, board)
+        src.ai.ship_deployment._remove_current_and_neighbouring_coords(ship_B_position, ship_B_orientation, available_coords_B, ship_B_length, board)
         self.assertEqual(test_coords_B, available_coords_B)
 
 

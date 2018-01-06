@@ -2,7 +2,7 @@ import importlib
 import numpy as np
 
 import src.ai.board_info as board_info
-import src.utils.fileIO as io
+import src.utils.file_io as io
 import src.ai.heuristics as heur
 import src.ai.bot_learning as bot_learn
 
