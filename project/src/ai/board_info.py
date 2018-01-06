@@ -1,22 +1,22 @@
 import numpy as np
 
 
-def ships_still_afloat(ships, opp_board):
+def ships_still_afloat(ships, board):
     """
     Calculates how many of the available ships on the board have not yet been sunk.
     :param ships: a list of ships by length.
-    :param opp_board: the board to be inspected.
+    :param board: the board to be inspected.
     :return: the list of ships not yet sunk.
     """
     afloat = []
     ships_removed = []
     for k in range(len(ships)):  # For every ship
-        afloat.append(ships[k])  # Add it to the list of afloat shipsA
+        afloat.append(ships[k])  # Add it to the list of afloat ships
         ships_removed.append(False)  # Set its removed from afloat list to false
-    for i in range(len(opp_board)):
-        for j in range(len(opp_board[0])):  # For every grid on the board
+    for i in range(len(board)):
+        for j in range(len(board[0])):  # For every grid on the board
             for k in range(len(ships)):  # For every ship
-                if str(k) in opp_board[i][j] and not ships_removed[
+                if str(k) in board[i][j] and not ships_removed[
                     k]:  # If we can see the ship number on our opponent's board and we haven't already removed it from the afloat list
                     afloat.remove(ships[
                                       k])  # Remove that ship from the afloat list (we can only see an opponent's ship number when the ship has been sunk)
@@ -33,10 +33,10 @@ def count_hits_and_misses(board):
     """
     hits = 0
     misses = 0
-    for (y, x), val in np.ndenumerate(board):
-        if 'H' in board[y][x] or 'S' in board[y][x]:
+    for (y,x),val in np.ndenumerate(board):
+        if 'H' in val or 'S' in val:
             hits += 1
-        if board[y][x] == 'M':
+        if val == 'M':
             misses += 1
 
     return {'hits': hits, 'misses': misses}

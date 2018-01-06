@@ -55,5 +55,76 @@ class LandTesting(unittest.TestCase):
         self.assertFalse(src.ai.board_info.is_there_land(board))
 
 
+class TestHitsAndMisses(unittest.TestCase):
+
+    def test_count_no_hits_or_misses(self):
+
+        board = [['', '', '2'],
+                 ['', 'L', '2'],
+                 ['1', '1', '']]
+
+        test_hits = 0
+        test_misses = 0
+
+        results = src.ai.board_info.count_hits_and_misses(board)
+        self.assertEqual(test_hits,results['hits'])
+        self.assertEqual(test_misses, results['misses'])
+
+    def test_count_hits_misses(self):
+        board = [['H', '', 'S2'],
+                 ['H', 'L', 'S2'],
+                 ['1', 'H1', 'M']]
+
+        test_hits = 5
+        test_misses = 1
+
+        results = src.ai.board_info.count_hits_and_misses(board)
+        self.assertEqual(test_hits, results['hits'])
+        self.assertEqual(test_misses, results['misses'])
+
+class TestShipsAfloat(unittest.TestCase):
+
+    # Test where the ships should be the same as nothing has been sunk.
+    def test_no_ships(self):
+        board = [['', 'H', '', '', ''],
+                 ['', 'H', '', 'H', ''],
+                 ['L', '', 'M', '', ''],
+                 ['', '', '', '', 'H'],
+                 ['', 'M', '', '', 'H']]
+
+        ships = [2,3,4,5]
+
+        test_afloat = [2,3,4,5]
+
+        self.assertEqual(test_afloat, src.ai.board_info.ships_still_afloat(ships, board))
+
+    # Test where some ships are sunk.
+    def test_some_ships(self):
+        board = [['', 'S0', '', '', 'S3'],
+                 ['', 'S0', '', 'H', 'S3'],
+                 ['L', '', 'M', '', 'S3'],
+                 ['', '', '', '', 'S3'],
+                 ['', 'M', '', '', 'S3']]
+
+        ships = [2,3,4,5]
+
+        test_afloat = [3,4]
+
+        self.assertEqual(test_afloat, src.ai.board_info.ships_still_afloat(ships, board))
+
+    # Test where a few ship lengths are repeated.
+    def test_repeated_ship_lengths(self):
+        board = [['', 'S1', '', '', ''],
+                 ['', 'S1', '', 'H', ''],
+                 ['L', 'S1', 'M', '', ''],
+                 ['', '', '', '', 'H'],
+                 ['', 'M', '', '', 'H']]
+
+        ships = [2,3,3,4,5]
+
+        test_afloat = [2,3,4,5]
+
+        self.assertEqual(test_afloat, src.ai.board_info.ships_still_afloat(ships, board))
+
 if __name__ == '__main__':
     unittest.main()
