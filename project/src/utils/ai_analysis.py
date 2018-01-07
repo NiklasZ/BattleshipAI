@@ -101,5 +101,4 @@ specific_games = [983183, 983182, 983180, 983178, 983177, 983176, 983174, 983173
                   983168, 983167, 983165, 983163]
 heuristic_values = np.linspace(start, stop, num=20)
 plot_heuristic_vs_opponent(bot_location, 'pho', 'housebot-competition', 15, 'ship_adjacency', heuristic_values, 5,
-                           specific_games,
-                           'multi_test-20val-10g')
+                           file_name_suffix='multi_test-20glob-5local')

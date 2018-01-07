@@ -10,7 +10,6 @@ import time
 
 BB_GLOBAL_CALLS = 10  # Number of global search calls the black box optimisation makes.
 BB_LOCAL_CALLS = 5  # Number of local search calls the black box optimisation makes.
-GAME_COUNT = 100  # Default number of games the optimiser uses.
 PARALLEL_CALLS = 4  # Default number of threads that will investigate different parameters.
 
 
@@ -111,7 +110,6 @@ def main():
     o.set_optimisation_type('minimise')
     o.prepare_offensive_games(games)
     o.prepare_heuristics(['ship_adjacency'])
-    #result = o.play_games([])
     result = o.optimise()
     print('\nChosen parameters:', result)
 

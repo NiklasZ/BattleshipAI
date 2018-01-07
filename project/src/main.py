@@ -78,7 +78,7 @@ class BattleshipsDemoClient(Frame):
         self.game_cancelled = False
         self.in_game = False
 
-        #Bot related variable
+        # Bot related variable
         self.train_bot = args.trainbot
 
         self.topFrame = Frame(tk, padx=12, pady=12)
@@ -511,7 +511,9 @@ class BattleshipsDemoClient(Frame):
         # Create bot and game recording
         recorder = record.GameRecorder(game_state, self.bot_id)
         bot = ai.AI(game_state)
-        bot.load_bot(self.bot_id,heuristic_choices=['ship_adjacency'])
+        bot.load_bot(self.bot_id, heuristic_choices=['ship_adjacency'])
+        won = None
+        final_state = None
 
         while True:
             if self.game_cancelled:
@@ -526,12 +528,14 @@ class BattleshipsDemoClient(Frame):
                     self.resultText.config(text="Invalid Move")
                 elif move_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + move_results['Result'])
-                    if 'GameState' not in move_results:
-                        print('Connection lost to server.')
+                    if 'GameState' not in move_results or not ai.is_game_over(move_results['GameState']):
+                        print('Opponent timed out.')
                         break
                     print("Game won!")
+                    won = True
                     recorder.record_turn(move_results['GameState'])
-                    bot.add_game_to_profile(move_results['GameState'], True)
+                    # bot.add_game_to_profile(move_results['GameState'], True)
+                    final_state = move_results['GameState']
                     break
                 else:
                     game_state = move_results['GameState']
@@ -546,9 +550,14 @@ class BattleshipsDemoClient(Frame):
 
                 if poll_results['Result'] != 'SUCCESS':
                     self.resultText.config(text='Game has ended: ' + poll_results['Result'])
+                    if not ai.is_game_over(poll_results['GameState']):
+                        print("Opponent timed out.")
+                        break
                     print("Game lost!")
+                    won = False
                     recorder.record_turn(poll_results['GameState'])
-                    bot.add_game_to_profile(poll_results['GameState'],False)
+                    final_state = poll_results['GameState']
+                    # bot.add_game_to_profile(poll_results['GameState'],False)
                     break
                 game_state = poll_results['GameState']
             # END OF GAME
@@ -567,8 +576,9 @@ class BattleshipsDemoClient(Frame):
                 time.sleep(0.1)
 
         self.set_in_game(False)
-        recorder.record_end()
-        bot.finish_game(self.train_bot)
+        if won is not None:
+            recorder.record_end()
+            bot.finish_game(final_state, won, train_bot=self.train_bot)
 
     def make_move(self, move):
         """Make a move."""
@@ -663,14 +673,14 @@ def int_with_commas(x):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description='Set optional running parameters')
     parser.add_argument('--botid', default=None, help='log in with this bot name')
     parser.add_argument('--password', default=None, help='log in with this password')
     parser.add_argument('--gamestyle', default=None, help='play this gamestyle')
     parser.add_argument('--timeout', default=0, help='have this timeout in milliseconds')
     parser.add_argument('--playanothergame', action='store_true', help='Play another game when complete')
-    parser.add_argument('--dontplaysameuserbot', action='store_true', help='Don\'t play another user in the same account')
+    parser.add_argument('--dontplaysameuserbot', action='store_true',
+                        help='Don\'t play another user in the same account')
     parser.add_argument('--closeaftergame', action='store_true',
                         help='Close the client once the game has completed (takes priority over playanothergame)')
     parser.add_argument('--trainbot', action='store_true',
@@ -681,5 +691,6 @@ def main():
     my_gui = BattleshipsDemoClient(root, cmd_args)
     root.mainloop()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
