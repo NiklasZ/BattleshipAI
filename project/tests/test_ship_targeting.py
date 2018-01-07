@@ -288,7 +288,7 @@ class TestTargetingScores(TestCase):
                        [0, 0, 0, 5],
                        [0, 0, 0, 4]]
 
-        scores = src.ai.ship_targeting.get_targeting_scores(board, ships, [])
+        scores = src.ai.ship_targeting.targeting_scores(board, ships, [])
         for row, row_t in zip(scores, scores_test):
             for a, a_t in zip(row, row_t):
                 self.assertEqual(a, a_t)

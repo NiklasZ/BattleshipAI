@@ -18,7 +18,7 @@ def ships_still_afloat(ships, board):
     for i in range(len(board)):
         for j in range(len(board[0])):  # For every grid on the board
             for k in range(len(ships)):  # For every ship
-                if str(k) in board[i][j] and not ships_removed[
+                if 'S'+str(k) == board[i][j] and not ships_removed[
                     k]:  # If we can see the ship number on our opponent's board and we haven't already removed it from the afloat list
                     afloat.remove(ships[
                                       k])  # Remove that ship from the afloat list (we can only see an opponent's ship number when the ship has been sunk)
