@@ -58,7 +58,8 @@ class Bot:
         """
         This function returns a random deployment of ships on the board in teh game_state.
         :param game_state:  A game_state dictionary, which conforms to the aigaming format.
-        :return: A list of ship coordinates, where one looks like: {"Row":"C", Column:1, Orientation: "H"}
+        :return: A dictionary of ship coordinates of the form:
+        {"Placements":[{"Row":"C", Column:1, Orientation: "H"},...]}
         """
         return ship_deploy.deploy_randomly(game_state['Ships'],game_state['MyBoard'])
 

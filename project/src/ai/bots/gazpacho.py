@@ -1,17 +1,29 @@
+# The Gazpacho is the 2nd completed bot.
+# From an offensive standpoint it is identical to Bouillabaisse.
+# The defensive play however, is different. Instead of a completely random placement for its own ships, it places them
+# randomly, but ensures that they are never adjacent. This is intended to combat a common effect where an opponent can
+# find multiple ships by accident, just by trying to hunt one (as they can accidentally hit an adjacent one).
 
+# project imports
 import src.ai.ship_targeting as ship_target
 import src.ai.board_info as board_info
 import src.ai.ship_deployment as ship_deploy
 
+# library imports
 from random import choice
 import numpy as np
 
 class Bot:
-
+    """The Bot class, allowing the creation of an instance of the Gazpacho bot."""
     def __init__(self):
         self.bot_name = 'Gazpacho'
 
     def make_move(self, game_state):
+        """
+        This function decides where to launch the next shot on the opponent board.
+        :param game_state: A game_state dictionary, which conforms to the aigaming format.
+        :return: A coordinate dict, containing a Row, Column and Orientation to fire at. E.g {"Row":"C", Column:1}.
+        """
         opp_ships = np.array(board_info.ships_still_afloat(game_state['Ships'], game_state['OppBoard']))
         opp_board = np.array(game_state['OppBoard'])
 
@@ -43,8 +55,16 @@ class Bot:
 
     # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
+        """
+        This function is called to place ships for the bot. In this case, it tries to first find a positioning that
+        allows placing all ships so they are non-adjacent.
+        :param game_state:  A game_state dictionary, which conforms to the aigaming format.
+        :return: A dictionary of ship coordinates of the form:
+        {"Placements":[{"Row":"C", Column:1, Orientation: "H"},...]}
+        """
         ships = game_state['Ships']
         player_board = game_state['MyBoard']
+        # See if the ships can be spaced out.
         result = ship_deploy.randomly_space_ships(player_board, ships)
 
         # In case it is impossible to place the ships in a non-adjacent way.
@@ -56,6 +76,14 @@ class Bot:
 
 # Get possible hits given the opponent's board and remaining ships.
 def _possible_hits(opp_board, opp_ships):
+    """
+    Helper function that first obtains all coordinates adjacent to hits and then for each one gets a count of
+    applicable ships.
+    :param opp_board: a 2D numpy array containing a string representation of the board.
+    :param opp_ships: a list of ints, where each int is the length of a ship on the board.
+    :return: a dictionary of the structure {coordinate_of_hit:{possible_alignments:some_int, other vars...}}.
+    E.g {(1,1):{"possible_alignments":4,...}
+    """
     hit_options = ship_target.adjacent_to_hits(opp_board)
     for hit in hit_options:
         possible_ship_count = ship_target.possible_hit_ships(opp_board, opp_ships, hit, hit_options[hit])
@@ -65,25 +93,14 @@ def _possible_hits(opp_board, opp_ships):
 
 # Look for possible targets based on alignment information.
 def _possible_targets(opp_board, opp_ships):
+    """
+    A helper function that finds all possible ship alignments for each coordinate on the board.
+    It then restructures these into a dictionary, returning only coordinates with alignments < 0.
+    :param opp_board: a 2D numpy array containing a string representation of the board.
+    :param opp_ships: a list of ints, where each int is the length of a ship on the board.
+    :return: a dictionary of the structure {coordinate:number_of_alignments}. E.g {(0,0):1}
+    """
     alignments = ship_target.possible_alignments(opp_board, opp_ships, reduce=True)
     # Get all non-zero possible alignments and their indices.
     targets = {(y, x): val for y, row in enumerate(alignments) for x, val in enumerate(row) if val > 0}
     return targets
-
-
-# Deploys all the ships randomly on a board, so that none of them are adjacent.
-
-
-# Try to place a ship in one of the available coordinates and then recurse and try with the next ship.
-
-
-# Removes all neighbouring coordinates for a ship.
-
-
-# Removes all neighbouring coordinates around a coordinate, as well as the coordinate itself.
-
-
-# Variant of the ship deployment algorithm that checks the set of available coordinates, rather then the board.
-
-
-# Format a dictionary of placements to fit the REST format.

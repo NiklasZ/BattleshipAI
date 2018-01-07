@@ -144,12 +144,18 @@ class AI:
         # If the current accuracy has sufficiently underperformed vs the
         accuracy_after_training = self.opponent_profile['misc']['accuracy_after_training'][self.map_type]
         accuracy_before_training = self.opponent_profile['misc']['accuracy_before_training'][self.map_type]
-        print('Accuracy difference:',accuracy_before_training,accuracy_after_training)
         if accuracy_after_training < accuracy_before_training * (1 - UNDERPERFOMANCE_THRESHOLD):
             print('Will commence training as', self.bot.bot_name + '\'s accuracy has dropped from:',
                   '{:.3f}'.format(accuracy_before_training * 100) + '%', 'to:',
                   '{:.3f}'.format(accuracy_after_training * 100) + '%')
             return True
+        else:
+            print('Skipping training as current accuracy of:',
+                  '{:.3f}'.format(accuracy_after_training * 100) + '%', ' is still good enough vs. ',
+                  '{:.3f}'.format(accuracy_before_training * 100) + '%')
+
+
+        return False
 
     def _train_bot(self):
 
