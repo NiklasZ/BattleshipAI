@@ -31,3 +31,4 @@ explore.BOARD_SAMPLES = int(learn_config['boards to sample per game'])
 
 record_config = config['Logging']
 record.MAX_GAMES_LOGGED_PER_OPPONENT = int(record_config['max games to log per opponent'])
+record.LOG_TEXT =record_config.getboolean('save logs to text files')

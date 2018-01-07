@@ -23,12 +23,15 @@ def save_profile(profile, bot_name, opponent_name):
     pickle.dump(profile, open(profile_dir, 'wb'))
 
 
-def save_game_log(bot_name, opponent_name, game_id, log, pickled_log):
+def save_pickled_game_log(bot_name, opponent_name, pickled_log):
+    game_pickled_log_path = DATA_DIR + BOTS_DIR + '/' + bot_name + OPP_DIR + '/' + opponent_name + GAMES_DIR + '/' + GAMES_LOG_FILE
+    pickle.dump(pickled_log, open(game_pickled_log_path, 'wb'))
+
+
+def save_textual_game_log(bot_name, opponent_name, game_id, log):
     game_log_path = DATA_DIR + BOTS_DIR + '/' + bot_name + OPP_DIR + '/' + opponent_name + GAMES_DIR + '/' + str(
         game_id)
-    game_pickled_log_path = DATA_DIR + BOTS_DIR + '/' + bot_name + OPP_DIR + '/' + opponent_name + GAMES_DIR + '/' + GAMES_LOG_FILE
     write_to_file(log, game_log_path)
-    pickle.dump(pickled_log, open(game_pickled_log_path, 'wb'))
 
 
 def load_pickled_game_log(bot_name, opponent_name):
