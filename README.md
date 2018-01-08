@@ -87,7 +87,7 @@ won = False
 
 # Finally store results of match and optionally train bot.
 recorder.record_end()
-bot.finish_game(final_game_state, won, train_bot=self.train_bot)
+bot.finish_game(final_game_state, won, train_bot=train_bot)
 ```
 ## How does it work?
 
