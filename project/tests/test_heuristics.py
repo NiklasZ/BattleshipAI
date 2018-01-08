@@ -85,6 +85,7 @@ class TestHeuristicAdjacency(TestCase):
                 self.assertEqual(a, a_t)
         self.assertEqual(np.sum(scores), np.sum(scores_test))
 
+
     # Test if the hit scoring changes as expected for a ship adjacency of 0.5 (we assume adjacent ships are less likely).
     def test_hitting_ship_adjacency_low(self):
         ships = [2, 3]

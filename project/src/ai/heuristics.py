@@ -1,12 +1,11 @@
+# This module holds heuristics and their sub-functions. A heuristic generally has a predefined form, taking in
+# cell_modifiers, ship_modifiers, ship_sets, board and some weight to optimise.
+
+# Library imports
 import numpy as np
 
-"""
-This file holds heuristics and their sub-functions. A heuristic generally has a fixed form, taking in
-cell_modifiers, ship_modifiers, ship_sets, board and some weight to optimise.
-"""
-
-# Search boxes that are considered for optimising the heuristic. It is not advisable to include 0 in this as it can
-# result in a score being multiplied with 0 and a target never being fired at.
+# Search are bounds that are considered for optimising the heuristic. It is not advisable to include 0 in this as it can
+# result in a score being multiplied with 0 and a coordinate of this score never being fired at.
 SEARCH_RANGES = {
     'ship_adjacency': [0.05, 5.]
 }
@@ -32,6 +31,8 @@ def ship_adjacency(cell_modifiers, ship_modifiers, ship_sets, board, adj_weight)
 
     for ship in affected_ships:
         ship_modifiers[ship] *= adj_weight
+
+    return
 
 
 def _get_cells_adjacent_to_ships(board):
