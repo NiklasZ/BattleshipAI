@@ -342,8 +342,7 @@ class AI:
         if self.map_type not in self.opponent_profile['misc']['games_since_training']:
             self.opponent_profile['misc']['games_since_training'][self.map_type] = 1
             self.opponent_profile['misc']['accuracy_before_training'][self.map_type] = 0
-            self.opponent_profile['misc']['accuracy_after_training'][self.map_type] = last_performance['games'][
-                'accuracy']
+            self.opponent_profile['misc']['accuracy_after_training'][self.map_type] = last_performance['accuracy']
 
         # Otherwise we are currently tracking the bot after some training.
         else:
