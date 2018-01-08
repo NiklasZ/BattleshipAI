@@ -18,7 +18,7 @@ The application is in source and not packaged. It can be run for testing purpose
 
 ### Prerequisites
 
-To run the application, you require Python 3.6 or newer and the following libraries (most easily installed via [PIP](https://pypi.python.org/pypi/pip)
+To run the application, you require Python 3.6 or newer and the following libraries (most easily installed via [PIP](https://pypi.python.org/pypi/pip)):
 
 ```
 pip install numpy
@@ -41,7 +41,8 @@ The application does not have any installer that needs to be run. Simply navigat
 python src
 ```
 
-This will load the basic client without 
+This will load the basic client and should look like the following:
+
 
 ## How does it work?
 
