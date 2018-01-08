@@ -29,6 +29,13 @@ MAKE_MOVE_EXTENSION = 'GM-MakeMove'
 CANCEL_GAME_OFFER_EXTENSION = 'GM-CancelGameOffer'
 CANCEL_GAME_TEXT = 'Cancel Game'
 
+# BASE_URL = 'https://rmm8lvjage.execute-api.eu-west-1.amazonaws.com/prod/'
+# GET_LIST_OF_GAME_STYLES_EXTENSION = 'GM-GetListOfGameStyles'
+# OFFER_GAME_EXTENSION = 'GM-OfferGame'
+# POLL_FOR_GAME_STATE_EXTENSION = 'GM-PollForGameState'
+# MAKE_MOVE_EXTENSION = 'GM-MakeMove'
+# CANCEL_GAME_OFFER_EXTENSION = 'GM-CancelGameOffer'
+
 API_CALL_HEADERS = {'Content-Type': 'application/json'}
 
 BATTLESHIPS_GAME_TYPE_ID = 51
@@ -80,6 +87,7 @@ class BattleshipsDemoClient(Frame):
 
         # Bot related variable
         self.train_bot = args.trainbot
+        self.heuristics = args.heuristics
 
         self.topFrame = Frame(tk, padx=12, pady=12)
         self.middleFrame = Frame(tk, padx=12)
@@ -511,7 +519,7 @@ class BattleshipsDemoClient(Frame):
         # Create bot and game recording
         recorder = record.GameRecorder(game_state, self.bot_id)
         bot = ai.AI(game_state)
-        bot.load_bot(self.bot_id, heuristic_choices=['ship_adjacency'])
+        bot.load_bot(self.bot_id, heuristic_choices=self.heuristics)
         won = None
         final_state = None
 
@@ -638,6 +646,8 @@ class BattleshipsDemoClient(Frame):
 
     @staticmethod
     def make_api_call(url, req):
+        #print(url)
+        #print(req)
         """Make an API call."""
         while True:
             try:
@@ -645,6 +655,7 @@ class BattleshipsDemoClient(Frame):
                 try:
                     jres = res.json()
                     if 'Result' in jres:
+                        #print(jres)
                         return jres
                     time.sleep(0.1)
                 except ValueError:
@@ -658,6 +669,7 @@ class BattleshipsDemoClient(Frame):
             except BaseException as e:  # Bad code but needed for testing purposes
                 print(e)
                 time.sleep(0.1)
+
 
 
 def int_with_commas(x):
@@ -685,6 +697,7 @@ def main():
                         help='Close the client once the game has completed (takes priority over playanothergame)')
     parser.add_argument('--trainbot', action='store_true',
                         help='Train the bot after a certain number of games has passed')
+    parser.add_argument('--heuristics', nargs='+', help='declare which heuristics to use or train with the bot.')
 
     cmd_args = parser.parse_args()
     root = Tk()
