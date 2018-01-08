@@ -73,15 +73,17 @@ final_state = None
 # In a game round:
 for turn in game:
   move = bot.make_decision(game_state)
-  # after a move has been made by the bot or its opponent
-   recorder.record_turn(game_state)
-  # do something with the move
+  # update the game_state with the move
   ...
+  recorder.record_turn(game_state)
+  # opponent moves
+  ...
+  recorder.record_turn(game_state)
 
 # If bot wins
 won = True
 # If it loses
-won = false
+won = False
 
 # Finally store results of match and optionally train bot.
 recorder.record_end()
