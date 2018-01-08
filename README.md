@@ -43,7 +43,7 @@ python src
 
 This will load the basic client and should look like the following:
 
-![alt text](https://github.com/NiklasZ/BattleshipAI/edit/master/readme_assets/blank_client.png)
+![alt text](https://github.com/NiklasZ/BattleshipAI/blob/master/readme_assets/blank_client.png)
 
 
 ## How does it work?
