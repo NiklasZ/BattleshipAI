@@ -10,36 +10,38 @@ The application also features additional functions:
 * a GUI client provided by aigaming that connects to their server and visualises games in action.
 * a training algorithm that adapts heuristics to opponent's playstyles.
 * a logging function that stores games for training.
+* an (optional) plotting function that allows displaying bot performance.
 
 ## Getting Started
 
-To run the bot
+The application is in source and not packaged. It can be run for testing purposes by following the below sections.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+To run the application, you require Python 3.6 or newer and the following libraries (most easily installed via [PIP](https://pypi.python.org/pypi/pip)
 
 ```
-Give examples
+pip install numpy
+pip install scipy
+pip install requests
+```
+
+and optionally (if the plotting is of interest):
+
+```
+pip install pandas
+pip install matplotlib
 ```
 
 ### Installing
 
-A step by step series of examples that tell you have to get a development env running
-
-Say what the step will be
+The application does not have any installer that needs to be run. Simply navigate to `project` and run:
 
 ```
-Give the example
+python src
 ```
 
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
+This will load the basic client without 
 
 ## How does it work?
 
@@ -53,5 +55,5 @@ Coming soon.
 
 ## Acknowledgments
 
-* aigaming.com for providing the [client](https://www.aigaming.com/Help?url=downloads), composed of UI and request handling.
-* [Paul Knysh](https://github.com/paulknysh/blackbox), for their a black box function optimisation algorithm.
+* [https://www.aigaming.com/](aigaming.com) for providing the [client](https://www.aigaming.com/Help?url=downloads), composed of UI and request handling.
+* [Paul Knysh](https://github.com/paulknysh), for their [black box function optimisation algorithm](https://github.com/paulknysh/blackbox).
