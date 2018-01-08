@@ -33,7 +33,6 @@ class Bot:
             moves = _possible_hits(opp_board, opp_ships)
 
             # Select by highest sequence length.
-            # highest_length = max(moves, key=lambda x: moves[x]['seq_length'])
             max_len_pos = max(moves, key=lambda x: moves[x]['seq_length'])
             max_length = moves[max_len_pos]['seq_length']
             length_choices = {k: v for k, v in moves.items() if v['seq_length'] == max_length}
@@ -53,7 +52,6 @@ class Bot:
 
         return board_info.translate_coord_to_move(y, x)
 
-    # Call to deploy ships at the start of the game.
     def place_ships(self, game_state):
         """
         This function is called to place ships for the bot. In this case, it tries to first find a positioning that
@@ -74,7 +72,6 @@ class Bot:
         return ship_deploy.format_ship_deployment(result)
 
 
-# Get possible hits given the opponent's board and remaining ships.
 def _possible_hits(opp_board, opp_ships):
     """
     Helper function that first obtains all coordinates adjacent to hits and then for each one gets a count of
@@ -91,7 +88,6 @@ def _possible_hits(opp_board, opp_ships):
     return hit_options
 
 
-# Look for possible targets based on alignment information.
 def _possible_targets(opp_board, opp_ships):
     """
     A helper function that finds all possible ship alignments for each coordinate on the board.

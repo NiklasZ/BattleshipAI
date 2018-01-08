@@ -34,7 +34,6 @@ class Bot:
             moves = _possible_hits(opp_board, opp_ships)
 
             # Select by highest sequence length.
-            # highest_length = max(moves, key=lambda x: moves[x]['seq_length'])
             max_len_pos = max(moves, key=lambda x: moves[x]['seq_length'])
             max_length = moves[max_len_pos]['seq_length']
             length_choices = {k: v for k, v in moves.items() if v['seq_length'] == max_length}
