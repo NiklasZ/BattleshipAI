@@ -29,13 +29,6 @@ MAKE_MOVE_EXTENSION = 'GM-MakeMove'
 CANCEL_GAME_OFFER_EXTENSION = 'GM-CancelGameOffer'
 CANCEL_GAME_TEXT = 'Cancel Game'
 
-# BASE_URL = 'https://rmm8lvjage.execute-api.eu-west-1.amazonaws.com/prod/'
-# GET_LIST_OF_GAME_STYLES_EXTENSION = 'GM-GetListOfGameStyles'
-# OFFER_GAME_EXTENSION = 'GM-OfferGame'
-# POLL_FOR_GAME_STATE_EXTENSION = 'GM-PollForGameState'
-# MAKE_MOVE_EXTENSION = 'GM-MakeMove'
-# CANCEL_GAME_OFFER_EXTENSION = 'GM-CancelGameOffer'
-
 API_CALL_HEADERS = {'Content-Type': 'application/json'}
 
 BATTLESHIPS_GAME_TYPE_ID = 51

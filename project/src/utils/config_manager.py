@@ -1,4 +1,3 @@
-import src.ai.ai
 import src.ai.ai as ai
 import src.ai.heuristics as heur
 import src.ai.bot_learning as learn
