@@ -14,9 +14,6 @@ MAX_GAMES_WITHOUT_TRAINING = 200  # Force a training session after this many gam
 UNDERPERFOMANCE_THRESHOLD = 0.1  # By how much a trained bot has to underperform to be retrained at a training interval.
 
 
-# TRAINING_MAP_RATE = 0.8
-
-
 class AI:
 
     def __init__(self, game_state):
@@ -59,6 +56,15 @@ class AI:
         else:
             return self.bot.make_move(game_state)
 
+    def finish_game(self, game_state, won, train_bot=False):
+
+        self._add_game_to_profile(game_state, won)
+        io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
+
+        if train_bot and self._bot_has_heuristics() and self._decide_whether_to_train():
+            self._train_bot()
+        io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
+
     # Check if a bot has a possibility to set heuristics.
     def _bot_has_heuristics(self):
         set_heuristics = getattr(self.bot, "set_heuristics", None)
@@ -94,15 +100,6 @@ class AI:
 
         set_heuristics(heuristics)
 
-    def finish_game(self, game_state, won, train_bot=False):
-
-        self._add_game_to_profile(game_state, won)
-        io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
-
-        if train_bot and self._bot_has_heuristics() and self._decide_whether_to_train():
-            self._train_bot()
-        io.save_profile(self.opponent_profile, self.bot.bot_name, self.opponent_name)
-
     def _decide_whether_to_train(self):
         # If we are not at a training interval:
         remainder = len(self.opponent_profile['games']) % TRAIN_INTERVAL
@@ -118,7 +115,6 @@ class AI:
                   str(map_type_count) + '. Require:', GAME_COUNT)
             return False
 
-
         # If we have never trained a heuristic
         trained_heuristics = set(self.opponent_profile['heuristics'].keys())
         chosen_heuristics = set(self.heuristic_choices)
@@ -133,14 +129,12 @@ class AI:
                       self.map_type, 'map.')
                 return True
 
-
         # If we have not trained for MAX_GAMES_WITHOUT_TRAINING.
         if self.opponent_profile['misc']['games_since_training'][self.map_type] >= MAX_GAMES_WITHOUT_TRAINING:
             print('Will commence training as', self.bot.bot_name, 'has not been trained on', self.map_type, 'in',
                   self.opponent_profile['misc']['games_since_training'][self.map_type], 'games.')
             return True
 
-        # TODO observe when this works.
         # If the current accuracy has sufficiently underperformed vs the
         accuracy_after_training = self.opponent_profile['misc']['accuracy_after_training'][self.map_type]
         accuracy_before_training = self.opponent_profile['misc']['accuracy_before_training'][self.map_type]
@@ -153,7 +147,6 @@ class AI:
             print('Skipping training as current accuracy of:',
                   '{:.3f}'.format(accuracy_after_training * 100) + '%', ' is still good enough vs. ',
                   '{:.3f}'.format(accuracy_before_training * 100) + '%')
-
 
         return False
 
@@ -173,8 +166,10 @@ class AI:
 
         games = self.opponent_profile['games']
         game_count = min(len(games), gc.MAX_GAMES_LOGGED_PER_OPPONENT)
+        selection = min(len(games), GAME_COUNT)
         stored_games = sorted(games, reverse=True)[:game_count]
-        return [g for g in stored_games if games[g]['map_type'] == self.map_type]
+        print(len([g for g in stored_games if games[g]['map_type'] == self.map_type][:selection]))
+        return [g for g in stored_games if games[g]['map_type'] == self.map_type][:selection]
 
     def _update_heuristics(self, values, map_type):
 
