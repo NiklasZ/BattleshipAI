@@ -535,7 +535,6 @@ class BattleshipsDemoClient(Frame):
                     print("Game won!")
                     won = True
                     recorder.record_turn(move_results['GameState'])
-                    # bot.add_game_to_profile(move_results['GameState'], True)
                     final_state = move_results['GameState']
                     break
                 else:
@@ -558,11 +557,9 @@ class BattleshipsDemoClient(Frame):
                     won = False
                     recorder.record_turn(poll_results['GameState'])
                     final_state = poll_results['GameState']
-                    # bot.add_game_to_profile(poll_results['GameState'],False)
                     break
                 game_state = poll_results['GameState']
             # END OF GAME
-            recorder.record_turn(game_state)
             if game_state['GameStatus'] != 'RUNNING':
                 break
 
