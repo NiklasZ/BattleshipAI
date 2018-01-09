@@ -43,8 +43,55 @@ python src
 
 This will load the basic client and should look like the following:
 
+![alt text](https://github.com/NiklasZ/BattleshipAI/blob/master/readme_assets/blank_client.png)
 
+If this works, then try to run the following configuration against the master-bot:
+
+```
+python src --botid pho --password a_password --gamestyle 103 --dontplaysameuserbot --trainbot  --heuristics ship_adjacency
+```
+
+This should initialise the bot Pho to play a game of style 103 (land-based) against whichever opponent offers on the aigaming server.
+
+If you want to use the bot without the server and GUI you can also just create a script like the following:
+ 
+ ```python
+ 
+ # Project imports
+import src.ai.ai as ai
+import src.utils.game_recorder as record
+import src.utils.config_manager
+ 
+# To initialise the bot
+recorder = record.GameRecorder(game_state, bot_name)
+bot = ai.AI(game_state)
+bot.load_bot(bot_name, heuristic_choices=heuristic_names)
+won = None
+final_state = None
+...
+
+# In a game round:
+for turn in game:
+  move = bot.make_decision(game_state)
+  # update the game_state with the move
+  ...
+  recorder.record_turn(game_state)
+  # opponent moves
+  ...
+  recorder.record_turn(game_state)
+
+# If bot wins
+won = True
+# If it loses
+won = False
+
+# Finally store results of match and optionally train bot.
+recorder.record_end()
+bot.finish_game(final_game_state, won, train_bot=train_bot)
+```
 ## How does it work?
+
+Coming soon.
 
 ## Running the tests
 
