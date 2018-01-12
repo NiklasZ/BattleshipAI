@@ -2,7 +2,7 @@
 # obtains a list of terminal states the board can arrive at. The purpose of this is to simulate the playing of probable
 # games that can then be evaluated by a function which is in turn, optimised.
 
-#Library imports
+# Library imports
 import copy
 import numpy as np
 import queue
@@ -11,10 +11,11 @@ import importlib
 
 BOARD_SAMPLES = 100  # Number of boards to sample from a board
 
+
 def init_bfs(bot_location, heuristics, board, ships, state_limit=BOARD_SAMPLES, randomise=True):
     """
     This function loads a bot and then has it generate a game tree of the possible plays on the board. It initially
-    traverses the tree in a bread-first search until it has found branches <= state_limit. Branches where each child is
+    traverses the tree in a breadth-first search until it has found branches <= state_limit. Branches where each child is
     is also evaluated are not considered. Once it has a branch count <= state_limit, it then plays each branch to leaf/
     terminal state (where the game is won). It then returns these played boards.
     :param bot_location: a string of a module path to where the desired bot resides.
@@ -28,8 +29,8 @@ def init_bfs(bot_location, heuristics, board, ships, state_limit=BOARD_SAMPLES, 
     opposed to always picking the first one. Notably, this is only relevant when playing towards a terminal state.
     :return: a list of boards, where each board has all ships sunk.
     """
-    bot = getattr(importlib.import_module(bot_location), 'Bot')() # load the bot
-    bot.set_heuristics(heuristics) # set the bot's heuristics.
+    bot = getattr(importlib.import_module(bot_location), 'Bot')()  # load the bot
+    bot.set_heuristics(heuristics)  # set the bot's heuristics.
 
     games = _bfs_games(bot, board, ships, state_limit, randomise)
     return games
@@ -53,10 +54,10 @@ def _bfs_games(bot, board, ships, state_limit, randomise):
     opposed to always picking the first one. Notably, this is only relevant when playing towards a terminal state.
     :return: a list of boards, where each board has all ships sunk.
     """
-    masked_opp_board = _mask_board(board) # Create a copy of the board with the visible ships that hides them.
-    states = queue.Queue() # A queue in which to store the boards
-    root = (board, masked_opp_board) # the initial board.
-    leaves = [] # a list of terminal/won boards.
+    masked_opp_board = _mask_board(board)  # Create a copy of the board with the visible ships that hides them.
+    states = queue.Queue()  # A queue in which to store the boards
+    root = (board, masked_opp_board)  # the initial board.
+    leaves = []  # a list of terminal/won boards.
     states.put(root)
 
     # Keep going as long as there are still states (it could happen that we evaluate every possible game before reaching
@@ -72,7 +73,7 @@ def _bfs_games(bot, board, ships, state_limit, randomise):
         for choice in bot.last_choices:
             opp_board_copy = copy.deepcopy(node[0])
             masked_opp_board_copy = copy.deepcopy(node[1])
-            _shoot_at_opponent(choice, opp_board_copy, masked_opp_board_copy, ships) # shoot at the board.
+            _shoot_at_opponent(choice, opp_board_copy, masked_opp_board_copy, ships)  # shoot at the board.
 
             # If we have won, add it to leaves.
             if _has_won(opp_board_copy):
@@ -93,11 +94,11 @@ def _bfs_games(bot, board, ships, state_limit, randomise):
             else:
                 choice = bot.last_choices[0]
 
-            _shoot_at_opponent(choice, node[0], node[1], ships) # modify the board to look shot at.
+            _shoot_at_opponent(choice, node[0], node[1], ships)  # modify the board to look shot at.
 
         leaves.append(node[1])
 
-    return leaves # return finished games.
+    return leaves  # return finished games.
 
 
 def _shoot_at_opponent(coord, board, masked_board, ships):
@@ -152,7 +153,7 @@ def _mask_board(board):
     :param board: a 2D numpy array containing a string representation of the board. All ships should be visible.
     :return: a 2D numpy array containing a string representation of the board, with all ships hidden.
     """
-    masked = copy.deepcopy(board) # copy operation
+    masked = copy.deepcopy(board)  # copy operation
     for (y, x), val in np.ndenumerate(board):
         if val.isdigit():
             masked[y][x] = ''
