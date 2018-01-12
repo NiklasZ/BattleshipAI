@@ -14,7 +14,7 @@ The application also features additional functions:
 
 ## How to use this
 
-* To make your own bot - this application is designed to allow the easy addition of future bots. It also provides a lot of meta-features like performance tracking & analysis. More details on how to add your own bot are [here]()
+* To make your own bot - this application is designed to allow the easy addition of future bots. It also provides a lot of meta-features like performance tracking & analysis. More details on how to add your own bot are [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/adding_your_own_bots.md)
 You can use the application to partake in aigaming's [battleship competition](https://www.aigaming.com/GameInfo/GameTypes?type=51), simply by adding your own bot into the application 
 
 ## Getting Started
@@ -96,7 +96,7 @@ bot.finish_game(final_game_state, won, train_bot=train_bot)
 ```
 ## How does it work?
 
-Details on how the bots work can be seen [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/AI_DOCS.md).
+Details on how the bots work can be seen [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/how_bots_work.md).
 
 ## Running the tests
 
