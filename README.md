@@ -91,11 +91,14 @@ bot.finish_game(final_game_state, won, train_bot=train_bot)
 ```
 ## How does it work?
 
-Coming soon.
+Details on how the bots work can be seen [here](https://github.com/NiklasZ/BattleshipAI/blob/master/AI_DOCS.md).
 
 ## Running the tests
 
-Coming soon.
+This project does include feature tests for the AI-related components of the bots. They cover all functions in `project/src/ai/` save for those related to training (as those would be very expensive to test and not really meaningful either). The tests for each module are named `test_MODULE_NAME.py` for simplicity.
+
+To run all the project tests make sure to be in the `project` directory and run `python -m unittest discover`.
+Otherwise, to run a single test module use `python -m unittest tests.TEST_NAME`.
 
 ## Authors
 
