@@ -96,7 +96,7 @@ bot.finish_game(final_game_state, won, train_bot=train_bot)
 ```
 ## How does it work?
 
-Details on how the bots work can be seen [here](https://github.com/NiklasZ/BattleshipAI/blob/master/AI_DOCS.md).
+Details on how the bots work can be seen [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/AI_DOCS.md).
 
 ## Running the tests
 
