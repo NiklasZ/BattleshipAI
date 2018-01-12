@@ -1,6 +1,6 @@
 # BattleShipAI
 
-This is my submission to battleship challenge by aigaming.com, submitted on the 08.01.2018. It composes 3 bots that can play the game [battleship](https://en.wikipedia.org/wiki/Battleship_(game)) in aigaming's [battleship competition](https://www.aigaming.com/GameInfo/GameTypes?type=51). Each bot is an incremental improvement and are called (from weakest, to strongest):
+This is my submission to [battleship challenge](https://www.aigaming.com/GameInfo/GameTypes?type=51) by AIgaming[https://www.aigaming.com/], submitted on the 08.01.2018. It composes 3 bots that can play the game [battleship](https://en.wikipedia.org/wiki/Battleship_(game)). Each bot is an incremental improvement and are called (from weakest, to strongest):
 
 1. Bouillabaisse - bot that uses probabilistic targeting and completely randomised placement.
 2. Gazpacho - bot that uses probabilistic targeting and well-spaced randomised placement.
@@ -8,6 +8,7 @@ This is my submission to battleship challenge by aigaming.com, submitted on the 
 
 The application also features additional functions:
 * a GUI client provided by aigaming that connects to their server and visualises games in action.
+* a performance analyser that shows how the bot is doing against an opponent.
 * a training algorithm that adapts heuristics to opponent's playstyles.
 * a logging function that stores games for training.
 * an (optional) plotting function that allows displaying bot performance.
