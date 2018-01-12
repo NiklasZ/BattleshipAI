@@ -12,6 +12,11 @@ The application also features additional functions:
 * a logging function that stores games for training.
 * an (optional) plotting function that allows displaying bot performance.
 
+## How to use this
+
+* To make your own bot - this application is designed to allow the easy addition of future bots. It also provides a lot of meta-features like performance tracking & analysis. More details on how to add your own bot are [here]()
+You can use the application to partake in aigaming's [battleship competition](https://www.aigaming.com/GameInfo/GameTypes?type=51), simply by adding your own bot into the application 
+
 ## Getting Started
 
 The application is in source and not packaged. It can be run for testing purposes by following the below sections.
