@@ -12,6 +12,11 @@ The application also features additional functions:
 * a logging function that stores games for training.
 * an (optional) plotting function that allows displaying bot performance.
 
+## How to use this
+
+* To make your own bot - this application is designed to allow the easy addition of future bots. It also provides a lot of meta-features like performance tracking & analysis. More details on how to add your own bot are [here]()
+You can use the application to partake in aigaming's [battleship competition](https://www.aigaming.com/GameInfo/GameTypes?type=51), simply by adding your own bot into the application 
+
 ## Getting Started
 
 The application is in source and not packaged. It can be run for testing purposes by following the below sections.
@@ -91,11 +96,15 @@ bot.finish_game(final_game_state, won, train_bot=train_bot)
 ```
 ## How does it work?
 
-Coming soon.
+Details on how the bots work can be seen [here](https://github.com/NiklasZ/BattleshipAI/blob/master/AI_DOCS.md).
 
 ## Running the tests
 
-Coming soon.
+This project does include feature tests for the AI-related components of the bots. They cover all functions in `project/src/ai/` save for those related to training (as those would be very expensive to test and not really meaningful either). The tests for each module are named `test_MODULE_NAME.py` for simplicity.
+
+To run **all** the project tests make sure to be in the `project` directory and run `python -m unittest discover`.
+
+Otherwise, to run a **single** test module use `python -m unittest tests.TEST_NAME`.
 
 ## Authors
 
