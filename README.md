@@ -14,8 +14,8 @@ The application also features additional functions:
 
 ## How to use this
 
-* To make your own bot - this application is designed to allow the easy addition of future bots. It also provides a lot of meta-features like performance tracking & analysis. More details on how to add your own bot are [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/adding_your_own_bots.md)
-You can use the application to partake in aigaming's [battleship competition](https://www.aigaming.com/GameInfo/GameTypes?type=51), simply by adding your own bot into the application 
+* **Make your own bot** - this application is designed to allow the easy addition of future bots. It also provides a lot of meta-features like performance tracking & analysis. More details on how to add your own bot are [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/adding_your_own_bot.md). You are of course, also free to modify the existing bots.
+* **Play against the bot** - if you want to play against the bot or have your own bot you would like to test against it, this is also possible. An guide on how to do this is [here](https://github.com/NiklasZ/BattleshipAI/blob/master/docs/playing_against_the_bot.md).
 
 ## Getting Started
 
